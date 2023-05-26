@@ -13,7 +13,6 @@ import (
 )
 
 func main() {
-
 	var appServer *http.Server
 
 	done := make(chan os.Signal, 1)
@@ -40,5 +39,6 @@ func main() {
 		log.Printf("error shutting down server: %v\n", err)
 	}
 	cancel()
+
 	log.Println("server shutdown gracefully")
 }
