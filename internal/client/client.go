@@ -21,6 +21,7 @@ type ClientRepository interface {
 
 type ClientIService interface {
 	Create(ctx context.Context, xid string) (*Client, error)
+	GetByToken(ctx context.Context, token string) (*Client, error)
 }
 
 type ClientService struct {
@@ -75,6 +76,15 @@ func (s *ClientService) Create(ctx context.Context, xid string) (*Client, error)
 	}
 
 	return existingClient, nil
+}
+
+func (s *ClientService) GetByToken(ctx context.Context, token string) (*Client, error) {
+	currentClient, err := s.repository.FindByToken(ctx, token)
+	if err != nil {
+		return nil, err
+	}
+
+	return currentClient, nil
 }
 
 func (s *ClientService) generateToken() string {
