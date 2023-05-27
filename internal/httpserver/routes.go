@@ -6,6 +6,7 @@ import (
 	"github.com/defryheryanto/mini-wallet/internal/app"
 	client_http "github.com/defryheryanto/mini-wallet/internal/client/http"
 	"github.com/defryheryanto/mini-wallet/internal/httpserver/middleware"
+	transaction_http "github.com/defryheryanto/mini-wallet/internal/transaction/http"
 	wallet_http "github.com/defryheryanto/mini-wallet/internal/wallet/http"
 	"github.com/go-chi/chi/v5"
 )
@@ -20,6 +21,8 @@ func HandleRoutes(application *app.Application) http.Handler {
 
 		r.Post("/api/v1/wallet", wallet_http.HandleEnableWallet(application.WalletService))
 		r.Get("/api/v1/wallet", wallet_http.HandleViewWallet(application.WalletService))
+
+		r.Get("/api/v1/wallet/transactions", transaction_http.HandleGetWalletTransactions(application.TransactionService))
 	})
 
 	return root
