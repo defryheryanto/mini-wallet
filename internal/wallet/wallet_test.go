@@ -65,7 +65,7 @@ func TestWalletService_Create(t *testing.T) {
 func TestWalletService_EnableWallet(t *testing.T) {
 	customerXid := "test"
 	mockedErr := fmt.Errorf("mocked")
-	t.Run("should return error if failed to find wallet by customer xidt", func(t *testing.T) {
+	t.Run("should return error if failed to find wallet by customer xid", func(t *testing.T) {
 		repository := mocks.NewWalletRepository(t)
 		repository.On("FindByCustomerXid", mock.Anything, customerXid).Return(nil, mockedErr)
 
@@ -124,5 +124,60 @@ func TestWalletService_EnableWallet(t *testing.T) {
 		result, err := service.EnableWallet(context.TODO(), customerXid)
 		assert.NotNil(t, result)
 		assert.Nil(t, err)
+	})
+}
+
+func TestWalletService_GetWalletByXid(t *testing.T) {
+	customerXid := "test"
+	mockedErr := fmt.Errorf("mocked")
+	t.Run("should return error if failed to find wallet by customer xid", func(t *testing.T) {
+		repository := mocks.NewWalletRepository(t)
+		repository.On("FindByCustomerXid", mock.Anything, customerXid).Return(nil, mockedErr)
+
+		service := wallet.NewWalletService(repository)
+		result, err := service.GetWalletByXid(context.TODO(), customerXid)
+		assert.Equal(t, mockedErr, err)
+		assert.Nil(t, result)
+	})
+	t.Run("should return error if wallet not found", func(t *testing.T) {
+		repository := mocks.NewWalletRepository(t)
+		repository.On("FindByCustomerXid", mock.Anything, customerXid).Return(nil, nil)
+
+		service := wallet.NewWalletService(repository)
+		result, err := service.GetWalletByXid(context.TODO(), customerXid)
+		assert.Equal(t, wallet.ErrWalletNotFound, err)
+		assert.Nil(t, result)
+	})
+	t.Run("should return error if wallet is disabled", func(t *testing.T) {
+		repository := mocks.NewWalletRepository(t)
+		repository.On("FindByCustomerXid", mock.Anything, customerXid).Return(&wallet.Wallet{
+			Status: wallet.STATUS_DISABLED,
+		}, nil)
+
+		service := wallet.NewWalletService(repository)
+		result, err := service.GetWalletByXid(context.TODO(), customerXid)
+		assert.Equal(t, wallet.ErrWalletDisabled, err)
+		assert.Nil(t, result)
+	})
+	t.Run("should return wallet if operation success", func(t *testing.T) {
+		now := time.Now()
+		targetWallet := &wallet.Wallet{
+			Id:        "test",
+			OwnedBy:   "test-owned",
+			Status:    wallet.STATUS_ENABLED,
+			EnabledAt: &now,
+			Balance:   0,
+		}
+		repository := mocks.NewWalletRepository(t)
+		repository.On("FindByCustomerXid", mock.Anything, customerXid).Return(targetWallet, nil)
+
+		service := wallet.NewWalletService(repository)
+		result, err := service.GetWalletByXid(context.TODO(), customerXid)
+		assert.Nil(t, err)
+		assert.Equal(t, targetWallet.Id, result.Id)
+		assert.Equal(t, targetWallet.OwnedBy, result.OwnedBy)
+		assert.Equal(t, targetWallet.Status, result.Status)
+		assert.Equal(t, targetWallet.EnabledAt, result.EnabledAt)
+		assert.Equal(t, targetWallet.Balance, result.Balance)
 	})
 }

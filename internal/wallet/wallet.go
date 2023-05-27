@@ -26,6 +26,7 @@ type WalletRepository interface {
 type WalletIService interface {
 	Create(ctx context.Context, params *CreateWalletParams) error
 	EnableWallet(ctx context.Context, customerXid string) (*Wallet, error)
+	GetWalletByXid(ctx context.Context, customerXid string) (*Wallet, error)
 }
 
 type WalletService struct {
@@ -98,6 +99,21 @@ func (s *WalletService) EnableWallet(ctx context.Context, customerXid string) (*
 	currentWallet, err = s.repository.FindByCustomerXid(ctx, customerXid)
 	if err != nil {
 		return nil, err
+	}
+
+	return currentWallet, nil
+}
+
+func (s *WalletService) GetWalletByXid(ctx context.Context, customerXid string) (*Wallet, error) {
+	currentWallet, err := s.repository.FindByCustomerXid(ctx, customerXid)
+	if err != nil {
+		return nil, err
+	}
+	if currentWallet == nil {
+		return nil, ErrWalletNotFound
+	}
+	if currentWallet.Status != STATUS_ENABLED {
+		return nil, ErrWalletDisabled
 	}
 
 	return currentWallet, nil

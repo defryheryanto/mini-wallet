@@ -9,7 +9,7 @@ import (
 	"github.com/defryheryanto/mini-wallet/internal/wallet"
 )
 
-type EnableWalletResponse struct {
+type EnabledWalletResponse struct {
 	Id        string    `json:"id"`
 	OwnedBy   string    `json:"owned_by"`
 	Status    string    `json:"status"`
@@ -40,7 +40,41 @@ func HandleEnableWallet(service wallet.WalletIService) http.HandlerFunc {
 		}
 
 		response.Success(w, http.StatusCreated, map[string]interface{}{
-			"wallet": &EnableWalletResponse{
+			"wallet": &EnabledWalletResponse{
+				Id:        targetWallet.Id,
+				OwnedBy:   targetWallet.OwnedBy,
+				EnabledAt: *targetWallet.EnabledAt,
+				Status:    targetWallet.Status,
+				Balance:   targetWallet.Balance,
+			},
+		})
+	}
+}
+
+func HandleViewWallet(service wallet.WalletIService) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		currentClient, err := client.FromContext(r.Context())
+		if err != nil {
+			response.Failed(w, http.StatusUnauthorized, err.Error())
+			return
+		}
+
+		targetWallet, err := service.GetWalletByXid(r.Context(), currentClient.Xid)
+		if err != nil {
+			if err == wallet.ErrWalletNotFound {
+				response.Failed(w, http.StatusNotFound, err.Error())
+				return
+			}
+			if err == wallet.ErrWalletDisabled {
+				response.Failed(w, http.StatusBadRequest, "Wallet disabled")
+				return
+			}
+			response.Error(w, err)
+			return
+		}
+
+		response.Success(w, http.StatusCreated, map[string]interface{}{
+			"wallet": &EnabledWalletResponse{
 				Id:        targetWallet.Id,
 				OwnedBy:   targetWallet.OwnedBy,
 				EnabledAt: *targetWallet.EnabledAt,

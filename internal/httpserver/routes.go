@@ -19,6 +19,7 @@ func HandleRoutes(application *app.Application) http.Handler {
 		r.Use(middleware.AuthenticateClient(application.ClientService))
 
 		r.Post("/api/v1/wallet", wallet_http.HandleEnableWallet(application.WalletService))
+		r.Get("/api/v1/wallet", wallet_http.HandleViewWallet(application.WalletService))
 	})
 
 	return root

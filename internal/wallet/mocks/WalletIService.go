@@ -54,6 +54,32 @@ func (_m *WalletIService) EnableWallet(ctx context.Context, customerXid string) 
 	return r0, r1
 }
 
+// GetWalletByXid provides a mock function with given fields: ctx, customerXid
+func (_m *WalletIService) GetWalletByXid(ctx context.Context, customerXid string) (*wallet.Wallet, error) {
+	ret := _m.Called(ctx, customerXid)
+
+	var r0 *wallet.Wallet
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (*wallet.Wallet, error)); ok {
+		return rf(ctx, customerXid)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) *wallet.Wallet); ok {
+		r0 = rf(ctx, customerXid)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*wallet.Wallet)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, customerXid)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 type mockConstructorTestingTNewWalletIService interface {
 	mock.TestingT
 	Cleanup(func())
