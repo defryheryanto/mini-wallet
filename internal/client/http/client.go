@@ -51,7 +51,7 @@ func HandleCreateClient(service client.ClientIService) http.HandlerFunc {
 			return
 		}
 
-		response.Success(w, http.StatusOK, &CreateClientResponse{
+		response.Success(w, http.StatusCreated, &CreateClientResponse{
 			Token: createdClient.Token,
 		})
 	}
