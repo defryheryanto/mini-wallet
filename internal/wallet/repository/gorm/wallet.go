@@ -39,3 +39,31 @@ func (r *WalletRepository) FindById(ctx context.Context, id string) (*wallet.Wal
 
 	return result.ToServiceModel(), nil
 }
+
+func (r *WalletRepository) FindByCustomerXid(ctx context.Context, xid string) (*wallet.Wallet, error) {
+	result := &Wallet{}
+
+	err := r.db.Where("owned_by = ?", xid).First(&result).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return result.ToServiceModel(), nil
+}
+
+func (r *WalletRepository) Update(ctx context.Context, data *wallet.Wallet) error {
+	result := Wallet{}.FromServiceModel(data)
+
+	err := r.db.Where("id = ?", data.Id).Updates(&result).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil
+		}
+		return err
+	}
+
+	return nil
+}

@@ -22,6 +22,9 @@ func FromContext(ctx context.Context) (*Client, error) {
 	if currentClient == nil {
 		return nil, ErrInvalidClient
 	}
+	if currentClient.Xid == "" {
+		return nil, ErrInvalidClient
+	}
 
 	return currentClient, nil
 }

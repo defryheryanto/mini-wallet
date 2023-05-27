@@ -14,6 +14,32 @@ type WalletRepository struct {
 	mock.Mock
 }
 
+// FindByCustomerXid provides a mock function with given fields: ctx, xid
+func (_m *WalletRepository) FindByCustomerXid(ctx context.Context, xid string) (*wallet.Wallet, error) {
+	ret := _m.Called(ctx, xid)
+
+	var r0 *wallet.Wallet
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (*wallet.Wallet, error)); ok {
+		return rf(ctx, xid)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) *wallet.Wallet); ok {
+		r0 = rf(ctx, xid)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*wallet.Wallet)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, xid)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // FindById provides a mock function with given fields: ctx, id
 func (_m *WalletRepository) FindById(ctx context.Context, id string) (*wallet.Wallet, error) {
 	ret := _m.Called(ctx, id)
@@ -42,6 +68,20 @@ func (_m *WalletRepository) FindById(ctx context.Context, id string) (*wallet.Wa
 
 // Insert provides a mock function with given fields: ctx, data
 func (_m *WalletRepository) Insert(ctx context.Context, data *wallet.Wallet) error {
+	ret := _m.Called(ctx, data)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *wallet.Wallet) error); ok {
+		r0 = rf(ctx, data)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// Update provides a mock function with given fields: ctx, data
+func (_m *WalletRepository) Update(ctx context.Context, data *wallet.Wallet) error {
 	ret := _m.Called(ctx, data)
 
 	var r0 error
