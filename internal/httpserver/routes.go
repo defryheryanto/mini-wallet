@@ -1,21 +1,17 @@
 package httpserver
 
 import (
-	"encoding/json"
 	"net/http"
-	"time"
 
 	"github.com/defryheryanto/mini-wallet/internal/app"
+	client_http "github.com/defryheryanto/mini-wallet/internal/client/http"
 	"github.com/go-chi/chi/v5"
 )
 
 func HandleRoutes(application *app.Application) http.Handler {
 	root := chi.NewRouter()
 
-	root.Get("/api/v1/init", func(w http.ResponseWriter, r *http.Request) {
-		time.Sleep(5 * time.Second)
-		json.NewEncoder(w).Encode("Success")
-	})
+	root.Post("/api/v1/init", client_http.HandleCreateClient(application.ClientService))
 
 	return root
 }
