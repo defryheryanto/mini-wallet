@@ -8,7 +8,6 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/defryheryanto/mini-wallet/internal/app"
 	"github.com/defryheryanto/mini-wallet/internal/httpserver"
 )
 
@@ -20,7 +19,8 @@ func main() {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	go func() {
-		appContainer := &app.Application{}
+		gormClient := setupGormClient()
+		appContainer := buildApp(gormClient)
 		appServer = &http.Server{
 			Addr:    ":8080",
 			Handler: httpserver.HandleRoutes(appContainer),
