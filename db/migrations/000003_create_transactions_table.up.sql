@@ -4,5 +4,6 @@ CREATE TABLE IF NOT EXISTS transactions (
     transacted_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_DATE,
     type VARCHAR(50) NOT NULL,
     amount DECIMAL(18, 2) NOT NULL DEFAULT 0, 
-    reference_id VARCHAR(100)
+    reference_id VARCHAR(100),
+    wallet_id VARCHAR(100) NOT NULL
 );
