@@ -57,7 +57,7 @@ func (r *WalletRepository) FindByCustomerXid(ctx context.Context, xid string) (*
 func (r *WalletRepository) Update(ctx context.Context, data *wallet.Wallet) error {
 	result := Wallet{}.FromServiceModel(data)
 
-	err := r.db.Where("id = ?", data.Id).Updates(&result).Error
+	err := r.db.Where("id = ?", data.Id).Select("*").Updates(&result).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil
