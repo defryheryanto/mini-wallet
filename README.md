@@ -14,13 +14,13 @@ Please refer to this [notion site](https://boiling-handstand-d11.notion.site/Min
 7. Start golang application `go run ./cmd/server/...`
 
 ## Environment Variables
-- DB_HOST
+- `DB_HOST`<br>
   Host of your database
-- DB_PORT
+- `DB_PORT`<br>
   Port of your database
-- DB_USER
+- `DB_USER`<br>
   Username of your database
-- DB_PASSWORD
+- `DB_PASSWORD`<br>
   User's password of your database
 
 ## Database Migrations
