@@ -40,25 +40,25 @@ func (_m *TransactionRepository) FindById(ctx context.Context, id string) (*tran
 	return r0, r1
 }
 
-// FindByReferenceId provides a mock function with given fields: ctx, referenceNo
-func (_m *TransactionRepository) FindByReferenceId(ctx context.Context, referenceNo string) (*transaction.Transaction, error) {
-	ret := _m.Called(ctx, referenceNo)
+// FindByReferenceId provides a mock function with given fields: ctx, referenceNo, transactionType
+func (_m *TransactionRepository) FindByReferenceId(ctx context.Context, referenceNo string, transactionType string) (*transaction.Transaction, error) {
+	ret := _m.Called(ctx, referenceNo, transactionType)
 
 	var r0 *transaction.Transaction
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) (*transaction.Transaction, error)); ok {
-		return rf(ctx, referenceNo)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) (*transaction.Transaction, error)); ok {
+		return rf(ctx, referenceNo, transactionType)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string) *transaction.Transaction); ok {
-		r0 = rf(ctx, referenceNo)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) *transaction.Transaction); ok {
+		r0 = rf(ctx, referenceNo, transactionType)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*transaction.Transaction)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, referenceNo)
+	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
+		r1 = rf(ctx, referenceNo, transactionType)
 	} else {
 		r1 = ret.Error(1)
 	}

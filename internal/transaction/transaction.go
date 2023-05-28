@@ -22,7 +22,7 @@ type Transaction struct {
 
 type TransactionRepository interface {
 	FindTransactionsByWalletId(ctx context.Context, walletId string) ([]*Transaction, error)
-	FindByReferenceId(ctx context.Context, referenceNo string) (*Transaction, error)
+	FindByReferenceId(ctx context.Context, referenceNo, transactionType string) (*Transaction, error)
 	FindById(ctx context.Context, id string) (*Transaction, error)
 	Insert(ctx context.Context, data *Transaction) error
 	Update(ctx context.Context, data *Transaction) error
@@ -84,7 +84,7 @@ func (s *TransactionService) CreateDeposit(ctx context.Context, params *CreateDe
 		return nil, err
 	}
 
-	trx, err := s.repository.FindByReferenceId(ctx, params.ReferenceId)
+	trx, err := s.repository.FindByReferenceId(ctx, params.ReferenceId, TYPE_DEPOSIT)
 	if err != nil {
 		return nil, err
 	}
@@ -122,7 +122,7 @@ func (s *TransactionService) CreateDeposit(ctx context.Context, params *CreateDe
 		return nil, err
 	}
 
-	trx, err = s.repository.FindByReferenceId(ctx, params.ReferenceId)
+	trx, err = s.repository.FindByReferenceId(ctx, params.ReferenceId, TYPE_DEPOSIT)
 	if err != nil {
 		return nil, err
 	}
@@ -172,7 +172,7 @@ func (s *TransactionService) CreateWithdrawal(ctx context.Context, params *Creat
 		return nil, wallet.ErrInsufficientBalance
 	}
 
-	trx, err := s.repository.FindByReferenceId(ctx, params.ReferenceId)
+	trx, err := s.repository.FindByReferenceId(ctx, params.ReferenceId, TYPE_WITHDRAWAL)
 	if err != nil {
 		return nil, err
 	}
@@ -210,7 +210,7 @@ func (s *TransactionService) CreateWithdrawal(ctx context.Context, params *Creat
 		return nil, err
 	}
 
-	trx, err = s.repository.FindByReferenceId(ctx, params.ReferenceId)
+	trx, err = s.repository.FindByReferenceId(ctx, params.ReferenceId, TYPE_WITHDRAWAL)
 	if err != nil {
 		return nil, err
 	}

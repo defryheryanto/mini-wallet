@@ -27,10 +27,10 @@ func (r *TransactionRepository) FindTransactionsByWalletId(ctx context.Context, 
 	return SliceToServiceModel(transactions), nil
 }
 
-func (r *TransactionRepository) FindByReferenceId(ctx context.Context, referenceId string) (*transaction.Transaction, error) {
+func (r *TransactionRepository) FindByReferenceId(ctx context.Context, referenceId, transactionType string) (*transaction.Transaction, error) {
 	transaction := &Transaction{}
 
-	err := r.db.Where("reference_id = ?", referenceId).First(&transaction).Error
+	err := r.db.Where("reference_id = ? AND type = ?", referenceId, transactionType).First(&transaction).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, nil
