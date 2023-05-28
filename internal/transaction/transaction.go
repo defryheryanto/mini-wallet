@@ -2,7 +2,6 @@ package transaction
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"time"
 
@@ -31,6 +30,7 @@ type TransactionRepository interface {
 type TransactionIService interface {
 	GetTransactionsByCustomerXid(ctx context.Context, xid string) ([]*Transaction, error)
 	CreateDeposit(ctx context.Context, params *CreateDepositParams) (*Transaction, error)
+	CreateWithdrawal(ctx context.Context, params *CreateWithdrawalParams) (*Transaction, error)
 }
 
 type TransactionService struct {
@@ -64,10 +64,10 @@ func (s *TransactionService) GetTransactionsByCustomerXid(ctx context.Context, x
 
 func (s *TransactionService) CreateDeposit(ctx context.Context, params *CreateDepositParams) (*Transaction, error) {
 	if params.CustomerXid == "" {
-		return nil, fmt.Errorf("customer xid is required")
+		return nil, ErrEmptyCustomerXid
 	}
 	if params.ReferenceId == "" {
-		return nil, fmt.Errorf("reference no is required")
+		return nil, ErrEmptyReferenceId
 	}
 
 	targetWallet, err := s.walletService.GetWalletByXid(ctx, params.CustomerXid)
@@ -128,6 +128,90 @@ func (s *TransactionService) CreateDeposit(ctx context.Context, params *CreateDe
 		err := s.walletService.AddBalance(ctx, targetWallet.Id, params.Amount)
 		if err != nil {
 			log.Printf("error adding balance to wallet %s, amount %f: %v\n", targetWallet.Id, params.Amount, err)
+			return
+		}
+
+		trx.Status = STATUS_SUCCESS
+		log.Printf("updating transaction %s\n", trx.Id)
+		err = s.repository.Update(ctx, trx)
+		if err != nil {
+			log.Printf("error updating transaction %s: %v\n", trx.Id, err)
+			return
+		}
+	}()
+
+	return trx, nil
+}
+
+func (s *TransactionService) CreateWithdrawal(ctx context.Context, params *CreateWithdrawalParams) (*Transaction, error) {
+	if params.CustomerXid == "" {
+		return nil, ErrEmptyCustomerXid
+	}
+	if params.ReferenceId == "" {
+		return nil, ErrEmptyReferenceId
+	}
+
+	targetWallet, err := s.walletService.GetWalletByXid(ctx, params.CustomerXid)
+	if err != nil {
+		return nil, err
+	}
+	if err = s.walletService.ValidateWallet(targetWallet); err != nil {
+		return nil, err
+	}
+	if targetWallet.Balance < params.Amount {
+		return nil, wallet.ErrInsufficientBalance
+	}
+
+	trx, err := s.repository.FindByReferenceId(ctx, params.ReferenceId)
+	if err != nil {
+		return nil, err
+	}
+	if trx != nil {
+		return nil, ErrReferenceNoAlreadyExists
+	}
+
+	uuidRandom, err := uuid.NewRandom()
+	if err != nil {
+		return nil, err
+	}
+
+	var randomId string
+	for {
+		randomId = uuidRandom.String()
+		existingTrx, err := s.repository.FindById(ctx, randomId)
+		if err != nil {
+			return nil, err
+		}
+		if existingTrx == nil {
+			break
+		}
+	}
+
+	err = s.repository.Insert(ctx, &Transaction{
+		Id:           randomId,
+		Status:       STATUS_PENDING,
+		TransactedAt: time.Now(),
+		Type:         TYPE_WITHDRAWAL,
+		Amount:       params.Amount,
+		ReferenceId:  params.ReferenceId,
+		WalletId:     targetWallet.Id,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	trx, err = s.repository.FindByReferenceId(ctx, params.ReferenceId)
+	if err != nil {
+		return nil, err
+	}
+
+	go func() {
+		log.Printf("queued %s\n", trx.Id)
+		time.Sleep(5 * time.Second)
+		log.Printf("deducting balance to wallet %s, amount: %f\n", targetWallet.Id, params.Amount)
+		err := s.walletService.DeductBalance(ctx, targetWallet.Id, params.Amount)
+		if err != nil {
+			log.Printf("error deduct balance to wallet %s, amount %f: %v\n", targetWallet.Id, params.Amount, err)
 			return
 		}
 

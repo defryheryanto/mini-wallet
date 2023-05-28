@@ -42,6 +42,20 @@ func (_m *WalletIService) Create(ctx context.Context, params *wallet.CreateWalle
 	return r0
 }
 
+// DeductBalance provides a mock function with given fields: ctx, walletId, amount
+func (_m *WalletIService) DeductBalance(ctx context.Context, walletId string, amount float64) error {
+	ret := _m.Called(ctx, walletId, amount)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, float64) error); ok {
+		r0 = rf(ctx, walletId, amount)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // EnableWallet provides a mock function with given fields: ctx, customerXid
 func (_m *WalletIService) EnableWallet(ctx context.Context, customerXid string) (*wallet.Wallet, error) {
 	ret := _m.Called(ctx, customerXid)

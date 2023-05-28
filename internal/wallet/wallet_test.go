@@ -236,3 +236,67 @@ func TestWalletService_AddBalance(t *testing.T) {
 		assert.Nil(t, err)
 	})
 }
+
+func TestWalletService_DeductBalance(t *testing.T) {
+	mockedErr := fmt.Errorf("mocked")
+	walletId := "test-wallet-id"
+	amount := float64(15_000)
+
+	t.Run("should return error if failed to get wallet", func(t *testing.T) {
+		repository := mocks.NewWalletRepository(t)
+		repository.On("FindById", mock.Anything, walletId).Return(nil, mockedErr)
+		service := wallet.NewWalletService(repository)
+
+		err := service.DeductBalance(context.TODO(), walletId, amount)
+		assert.Equal(t, mockedErr, err)
+	})
+	t.Run("should return error if wallet is not active", func(t *testing.T) {
+		repository := mocks.NewWalletRepository(t)
+		repository.On("FindById", mock.Anything, walletId).Return(&wallet.Wallet{
+			Status: wallet.STATUS_DISABLED,
+		}, nil)
+		service := wallet.NewWalletService(repository)
+
+		err := service.DeductBalance(context.TODO(), walletId, amount)
+		assert.Equal(t, wallet.ErrWalletDisabled, err)
+	})
+	t.Run("should return error if balance insufficient", func(t *testing.T) {
+		repository := mocks.NewWalletRepository(t)
+		repository.On("FindById", mock.Anything, walletId).Return(&wallet.Wallet{
+			Status:  wallet.STATUS_ENABLED,
+			Balance: 14_999,
+		}, nil)
+		service := wallet.NewWalletService(repository)
+
+		err := service.DeductBalance(context.TODO(), walletId, amount)
+		assert.Equal(t, wallet.ErrInsufficientBalance, err)
+	})
+	t.Run("should return error if failed to update wallet", func(t *testing.T) {
+		repository := mocks.NewWalletRepository(t)
+		repository.On("FindById", mock.Anything, walletId).Return(&wallet.Wallet{
+			Status:  wallet.STATUS_ENABLED,
+			Balance: 15_000,
+		}, nil)
+		repository.On("Update", mock.Anything, mock.Anything).Return(mockedErr)
+		service := wallet.NewWalletService(repository)
+
+		err := service.DeductBalance(context.TODO(), walletId, amount)
+		assert.Equal(t, mockedErr, err)
+	})
+	t.Run("should deduct wallet balance if operations success", func(t *testing.T) {
+		repository := mocks.NewWalletRepository(t)
+		repository.On("FindById", mock.Anything, walletId).Return(&wallet.Wallet{
+			Status:  wallet.STATUS_ENABLED,
+			Balance: 15_000,
+		}, nil)
+		repository.On("Update", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
+			updateParams, ok := args.Get(1).(*wallet.Wallet)
+			assert.True(t, ok, "params should be *Wallet")
+			assert.Equal(t, float64(0), updateParams.Balance)
+		}).Return(nil)
+		service := wallet.NewWalletService(repository)
+
+		err := service.DeductBalance(context.TODO(), walletId, amount)
+		assert.Nil(t, err)
+	})
+}

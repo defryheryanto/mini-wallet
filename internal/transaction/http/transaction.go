@@ -35,6 +35,11 @@ type CreateDepositRequest struct {
 	ReferenceId string  `json:"reference_id"`
 }
 
+type CreateWithdrawalRequest struct {
+	Amount      float64 `json:"amount"`
+	ReferenceId string  `json:"reference_id"`
+}
+
 func HandleGetWalletTransactions(service transaction.TransactionIService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		currentClient, err := client.FromContext(r.Context())
@@ -130,6 +135,82 @@ func HandleCreateDeposit(service transaction.TransactionIService) http.HandlerFu
 			}
 			if err == wallet.ErrWalletNotFound {
 				response.Failed(w, http.StatusNotFound, err.Error())
+				return
+			}
+			response.Error(w, err)
+			return
+		}
+
+		response.Success(w, http.StatusCreated, &DepositResponse{
+			Id:          trx.Id,
+			DepositedBy: currentClient.Xid,
+			Status:      trx.Status,
+			DepositedAt: trx.TransactedAt,
+			Amount:      trx.Amount,
+			ReferenceId: trx.ReferenceId,
+		})
+	}
+}
+
+func HandleCreateWithdrawal(service transaction.TransactionIService) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		errEmptyReferenceIdMsg := map[string]interface{}{
+			"reference_id": []string{
+				"Missing data for required field.",
+			},
+		}
+		errEmptyAmountMsg := map[string]interface{}{
+			"amount": []string{
+				"Missing data for required field.",
+			},
+		}
+		requestBody := &CreateWithdrawalRequest{}
+
+		err := request.DecodeBody(r, &requestBody)
+		if err != nil {
+			if err == io.EOF {
+				response.Failed(w, http.StatusBadRequest, map[string]interface{}{
+					"reference_id": errEmptyReferenceIdMsg["reference_id"],
+					"amount":       errEmptyAmountMsg["amount"],
+				})
+				return
+			}
+			response.Error(w, err)
+			return
+		}
+
+		if requestBody.ReferenceId == "" {
+			response.Failed(w, http.StatusBadRequest, errEmptyReferenceIdMsg)
+			return
+		}
+
+		currentClient, err := client.FromContext(r.Context())
+		if err != nil {
+			response.Failed(w, http.StatusUnauthorized, err.Error())
+			return
+		}
+
+		trx, err := service.CreateWithdrawal(r.Context(), &transaction.CreateWithdrawalParams{
+			CustomerXid: currentClient.Xid,
+			ReferenceId: requestBody.ReferenceId,
+			Amount:      requestBody.Amount,
+		})
+		if err != nil {
+			if err == transaction.ErrReferenceNoAlreadyExists {
+				response.Failed(w, http.StatusBadRequest, err.Error())
+				return
+			}
+			if err == wallet.ErrWalletDisabled {
+				response.Failed(w, http.StatusBadRequest, "Wallet disabled")
+				return
+			}
+			if err == wallet.ErrWalletNotFound {
+				response.Failed(w, http.StatusNotFound, err.Error())
+				return
+			}
+			if err == wallet.ErrInsufficientBalance {
+				response.Failed(w, http.StatusBadRequest, err.Error())
+				return
 			}
 			response.Error(w, err)
 			return

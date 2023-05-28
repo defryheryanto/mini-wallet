@@ -24,6 +24,7 @@ func HandleRoutes(application *app.Application) http.Handler {
 
 		r.Get("/api/v1/wallet/transactions", transaction_http.HandleGetWalletTransactions(application.TransactionService))
 		r.Post("/api/v1/wallet/deposits", transaction_http.HandleCreateDeposit(application.TransactionService))
+		r.Post("/api/v1/wallet/withdrawals", transaction_http.HandleCreateWithdrawal(application.TransactionService))
 	})
 
 	return root

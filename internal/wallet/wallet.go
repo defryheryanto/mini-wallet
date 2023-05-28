@@ -29,6 +29,7 @@ type WalletIService interface {
 	GetWalletByXid(ctx context.Context, customerXid string) (*Wallet, error)
 	AddBalance(ctx context.Context, walletId string, amount float64) error
 	ValidateWallet(target *Wallet) error
+	DeductBalance(ctx context.Context, walletId string, amount float64) error
 }
 
 type WalletService struct {
@@ -146,6 +147,28 @@ func (s *WalletService) ValidateWallet(target *Wallet) error {
 	}
 	if target.Status == STATUS_DISABLED {
 		return ErrWalletDisabled
+	}
+
+	return nil
+}
+
+func (s *WalletService) DeductBalance(ctx context.Context, walletId string, amount float64) error {
+	targetWallet, err := s.repository.FindById(ctx, walletId)
+	if err != nil {
+		return err
+	}
+	if err := s.ValidateWallet(targetWallet); err != nil {
+		return err
+	}
+
+	if targetWallet.Balance < amount {
+		return ErrInsufficientBalance
+	}
+
+	targetWallet.Balance -= amount
+	err = s.repository.Update(ctx, targetWallet)
+	if err != nil {
+		return err
 	}
 
 	return nil
