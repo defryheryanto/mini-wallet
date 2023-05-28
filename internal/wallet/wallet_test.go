@@ -181,3 +181,58 @@ func TestWalletService_GetWalletByXid(t *testing.T) {
 		assert.Equal(t, targetWallet.Balance, result.Balance)
 	})
 }
+
+func TestWalletService_AddBalance(t *testing.T) {
+	mockedErr := fmt.Errorf("mocked")
+	walletId := "test-wallet-id"
+	amount := float64(10_000)
+
+	t.Run("should return error if failed to get wallet", func(t *testing.T) {
+		repository := mocks.NewWalletRepository(t)
+		repository.On("FindById", mock.Anything, walletId).Return(nil, mockedErr)
+
+		service := wallet.NewWalletService(repository)
+		err := service.AddBalance(context.TODO(), walletId, amount)
+		assert.Equal(t, mockedErr, err)
+	})
+
+	t.Run("should return error if wallet not active", func(t *testing.T) {
+		repository := mocks.NewWalletRepository(t)
+		repository.On("FindById", mock.Anything, walletId).Return(&wallet.Wallet{
+			Status: wallet.STATUS_DISABLED,
+		}, nil)
+
+		service := wallet.NewWalletService(repository)
+		err := service.AddBalance(context.TODO(), walletId, amount)
+		assert.Equal(t, wallet.ErrWalletDisabled, err)
+	})
+
+	t.Run("should return error if failed to update balance", func(t *testing.T) {
+		repository := mocks.NewWalletRepository(t)
+		repository.On("FindById", mock.Anything, walletId).Return(&wallet.Wallet{
+			Status: wallet.STATUS_ENABLED,
+		}, nil)
+		repository.On("Update", mock.Anything, mock.Anything).Return(mockedErr)
+
+		service := wallet.NewWalletService(repository)
+		err := service.AddBalance(context.TODO(), walletId, amount)
+		assert.Equal(t, mockedErr, err)
+	})
+
+	t.Run("should update balance if operations success", func(t *testing.T) {
+		repository := mocks.NewWalletRepository(t)
+		repository.On("FindById", mock.Anything, walletId).Return(&wallet.Wallet{
+			Status:  wallet.STATUS_ENABLED,
+			Balance: 100_000,
+		}, nil)
+		repository.On("Update", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
+			updateParams, ok := args.Get(1).(*wallet.Wallet)
+			assert.True(t, ok, "params should be *Wallet")
+			assert.Equal(t, float64(110_000), updateParams.Balance)
+		}).Return(nil)
+
+		service := wallet.NewWalletService(repository)
+		err := service.AddBalance(context.TODO(), walletId, amount)
+		assert.Nil(t, err)
+	})
+}

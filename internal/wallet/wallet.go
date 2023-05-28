@@ -27,6 +27,8 @@ type WalletIService interface {
 	Create(ctx context.Context, params *CreateWalletParams) error
 	EnableWallet(ctx context.Context, customerXid string) (*Wallet, error)
 	GetWalletByXid(ctx context.Context, customerXid string) (*Wallet, error)
+	AddBalance(ctx context.Context, walletId string, amount float64) error
+	ValidateWallet(target *Wallet) error
 }
 
 type WalletService struct {
@@ -117,4 +119,34 @@ func (s *WalletService) GetWalletByXid(ctx context.Context, customerXid string) 
 	}
 
 	return currentWallet, nil
+}
+
+func (s *WalletService) AddBalance(ctx context.Context, walletId string, amount float64) error {
+	targetWallet, err := s.repository.FindById(ctx, walletId)
+	if err != nil {
+		return err
+	}
+	if err = s.ValidateWallet(targetWallet); err != nil {
+		return err
+	}
+
+	targetWallet.Balance += amount
+
+	err = s.repository.Update(ctx, targetWallet)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *WalletService) ValidateWallet(target *Wallet) error {
+	if target == nil {
+		return ErrWalletNotFound
+	}
+	if target.Status == STATUS_DISABLED {
+		return ErrWalletDisabled
+	}
+
+	return nil
 }

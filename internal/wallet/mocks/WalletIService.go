@@ -14,6 +14,20 @@ type WalletIService struct {
 	mock.Mock
 }
 
+// AddBalance provides a mock function with given fields: ctx, walletId, amount
+func (_m *WalletIService) AddBalance(ctx context.Context, walletId string, amount float64) error {
+	ret := _m.Called(ctx, walletId, amount)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, float64) error); ok {
+		r0 = rf(ctx, walletId, amount)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // Create provides a mock function with given fields: ctx, params
 func (_m *WalletIService) Create(ctx context.Context, params *wallet.CreateWalletParams) error {
 	ret := _m.Called(ctx, params)
@@ -78,6 +92,20 @@ func (_m *WalletIService) GetWalletByXid(ctx context.Context, customerXid string
 	}
 
 	return r0, r1
+}
+
+// ValidateWallet provides a mock function with given fields: target
+func (_m *WalletIService) ValidateWallet(target *wallet.Wallet) error {
+	ret := _m.Called(target)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*wallet.Wallet) error); ok {
+		r0 = rf(target)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 type mockConstructorTestingTNewWalletIService interface {
