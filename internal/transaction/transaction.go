@@ -5,6 +5,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/defryheryanto/mini-wallet/internal/storage/manager"
 	"github.com/defryheryanto/mini-wallet/internal/wallet"
 	"github.com/google/uuid"
 )
@@ -34,12 +35,17 @@ type TransactionIService interface {
 }
 
 type TransactionService struct {
-	repository    TransactionRepository
-	walletService wallet.WalletIService
+	repository     TransactionRepository
+	walletService  wallet.WalletIService
+	storageManager manager.StorageManager
 }
 
-func NewTransactionService(repository TransactionRepository, walletService wallet.WalletIService) *TransactionService {
-	return &TransactionService{repository, walletService}
+func NewTransactionService(
+	repository TransactionRepository,
+	walletService wallet.WalletIService,
+	storageManager manager.StorageManager,
+) *TransactionService {
+	return &TransactionService{repository, walletService, storageManager}
 }
 
 func (s *TransactionService) GetTransactionsByCustomerXid(ctx context.Context, xid string) ([]*Transaction, error) {
@@ -124,20 +130,24 @@ func (s *TransactionService) CreateDeposit(ctx context.Context, params *CreateDe
 	go func() {
 		log.Printf("queued %s\n", trx.Id)
 		time.Sleep(5 * time.Second)
-		log.Printf("disbursing balance to wallet %s, amount: %f\n", targetWallet.Id, params.Amount)
-		err := s.walletService.AddBalance(ctx, targetWallet.Id, params.Amount)
-		if err != nil {
-			log.Printf("error adding balance to wallet %s, amount %f: %v\n", targetWallet.Id, params.Amount, err)
-			return
-		}
+		s.storageManager.RunInTransaction(ctx, func(ctx context.Context) error {
+			log.Printf("disbursing balance to wallet %s, amount: %f\n", targetWallet.Id, params.Amount)
+			err := s.walletService.AddBalance(ctx, targetWallet.Id, params.Amount)
+			if err != nil {
+				log.Printf("error adding balance to wallet %s, amount %f: %v\n", targetWallet.Id, params.Amount, err)
+				return err
+			}
 
-		trx.Status = STATUS_SUCCESS
-		log.Printf("updating transaction %s\n", trx.Id)
-		err = s.repository.Update(ctx, trx)
-		if err != nil {
-			log.Printf("error updating transaction %s: %v\n", trx.Id, err)
-			return
-		}
+			trx.Status = STATUS_SUCCESS
+			log.Printf("updating transaction %s\n", trx.Id)
+			err = s.repository.Update(ctx, trx)
+			if err != nil {
+				log.Printf("error updating transaction %s: %v\n", trx.Id, err)
+				return err
+			}
+
+			return nil
+		})
 	}()
 
 	return trx, nil
@@ -208,20 +218,24 @@ func (s *TransactionService) CreateWithdrawal(ctx context.Context, params *Creat
 	go func() {
 		log.Printf("queued %s\n", trx.Id)
 		time.Sleep(5 * time.Second)
-		log.Printf("deducting balance to wallet %s, amount: %f\n", targetWallet.Id, params.Amount)
-		err := s.walletService.DeductBalance(ctx, targetWallet.Id, params.Amount)
-		if err != nil {
-			log.Printf("error deduct balance to wallet %s, amount %f: %v\n", targetWallet.Id, params.Amount, err)
-			return
-		}
+		s.storageManager.RunInTransaction(ctx, func(ctx context.Context) error {
+			log.Printf("deducting balance to wallet %s, amount: %f\n", targetWallet.Id, params.Amount)
+			err := s.walletService.DeductBalance(ctx, targetWallet.Id, params.Amount)
+			if err != nil {
+				log.Printf("error deduct balance to wallet %s, amount %f: %v\n", targetWallet.Id, params.Amount, err)
+				return err
+			}
 
-		trx.Status = STATUS_SUCCESS
-		log.Printf("updating transaction %s\n", trx.Id)
-		err = s.repository.Update(ctx, trx)
-		if err != nil {
-			log.Printf("error updating transaction %s: %v\n", trx.Id, err)
-			return
-		}
+			trx.Status = STATUS_SUCCESS
+			log.Printf("updating transaction %s\n", trx.Id)
+			err = s.repository.Update(ctx, trx)
+			if err != nil {
+				log.Printf("error updating transaction %s: %v\n", trx.Id, err)
+				return err
+			}
+
+			return nil
+		})
 	}()
 
 	return trx, nil

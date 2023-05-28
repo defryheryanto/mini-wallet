@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/defryheryanto/mini-wallet/internal/storage/manager"
 	"github.com/defryheryanto/mini-wallet/internal/transaction"
 	transaction_mock "github.com/defryheryanto/mini-wallet/internal/transaction/mocks"
 	"github.com/defryheryanto/mini-wallet/internal/wallet"
@@ -23,7 +24,7 @@ func TestTransactionService_GetTransactionsByCustomerXid(t *testing.T) {
 		walletService := wallet_mock.NewWalletIService(t)
 		walletService.On("GetWalletByXid", mock.Anything, customerXid).Return(nil, mockedErr)
 
-		service := transaction.NewTransactionService(repository, walletService)
+		service := transaction.NewTransactionService(repository, walletService, &manager.MockStorageManager{})
 
 		trx, err := service.GetTransactionsByCustomerXid(context.TODO(), customerXid)
 		assert.Equal(t, mockedErr, err)
@@ -35,7 +36,7 @@ func TestTransactionService_GetTransactionsByCustomerXid(t *testing.T) {
 		walletService := wallet_mock.NewWalletIService(t)
 		walletService.On("GetWalletByXid", mock.Anything, customerXid).Return(nil, nil)
 
-		service := transaction.NewTransactionService(repository, walletService)
+		service := transaction.NewTransactionService(repository, walletService, &manager.MockStorageManager{})
 
 		trx, err := service.GetTransactionsByCustomerXid(context.TODO(), customerXid)
 		assert.Equal(t, wallet.ErrWalletNotFound, err)
@@ -49,7 +50,7 @@ func TestTransactionService_GetTransactionsByCustomerXid(t *testing.T) {
 			Status: wallet.STATUS_DISABLED,
 		}, nil)
 
-		service := transaction.NewTransactionService(repository, walletService)
+		service := transaction.NewTransactionService(repository, walletService, &manager.MockStorageManager{})
 
 		trx, err := service.GetTransactionsByCustomerXid(context.TODO(), customerXid)
 		assert.Equal(t, wallet.ErrWalletDisabled, err)
@@ -73,7 +74,7 @@ func TestTransactionService_GetTransactionsByCustomerXid(t *testing.T) {
 		walletService := wallet_mock.NewWalletIService(t)
 		walletService.On("GetWalletByXid", mock.Anything, customerXid).Return(targetWallet, nil)
 
-		service := transaction.NewTransactionService(repository, walletService)
+		service := transaction.NewTransactionService(repository, walletService, &manager.MockStorageManager{})
 
 		trx, err := service.GetTransactionsByCustomerXid(context.TODO(), customerXid)
 		assert.Nil(t, err)
@@ -92,7 +93,7 @@ func TestTransactionService_CreateDeposit(t *testing.T) {
 	t.Run("should return error if customer xid is empty", func(t *testing.T) {
 		repository := transaction_mock.NewTransactionRepository(t)
 		walletService := wallet_mock.NewWalletIService(t)
-		service := transaction.NewTransactionService(repository, walletService)
+		service := transaction.NewTransactionService(repository, walletService, &manager.MockStorageManager{})
 
 		trx, err := service.CreateDeposit(context.TODO(), &transaction.CreateDepositParams{
 			ReferenceId: "ref-no",
@@ -105,7 +106,7 @@ func TestTransactionService_CreateDeposit(t *testing.T) {
 	t.Run("should return error if ref no is empty", func(t *testing.T) {
 		repository := transaction_mock.NewTransactionRepository(t)
 		walletService := wallet_mock.NewWalletIService(t)
-		service := transaction.NewTransactionService(repository, walletService)
+		service := transaction.NewTransactionService(repository, walletService, &manager.MockStorageManager{})
 
 		trx, err := service.CreateDeposit(context.TODO(), &transaction.CreateDepositParams{
 			CustomerXid: "test-xid",
@@ -120,7 +121,7 @@ func TestTransactionService_CreateDeposit(t *testing.T) {
 		walletService := wallet_mock.NewWalletIService(t)
 		walletService.On("GetWalletByXid", mock.Anything, params.CustomerXid).Return(nil, mockedErr)
 
-		service := transaction.NewTransactionService(repository, walletService)
+		service := transaction.NewTransactionService(repository, walletService, &manager.MockStorageManager{})
 
 		trx, err := service.CreateDeposit(context.TODO(), params)
 		assert.Equal(t, mockedErr, err)
@@ -133,7 +134,7 @@ func TestTransactionService_CreateDeposit(t *testing.T) {
 		walletService.On("GetWalletByXid", mock.Anything, params.CustomerXid).Return(&wallet.Wallet{}, nil)
 		walletService.On("ValidateWallet", mock.Anything).Return(mockedErr)
 
-		service := transaction.NewTransactionService(repository, walletService)
+		service := transaction.NewTransactionService(repository, walletService, &manager.MockStorageManager{})
 
 		trx, err := service.CreateDeposit(context.TODO(), params)
 		assert.Equal(t, mockedErr, err)
@@ -148,7 +149,7 @@ func TestTransactionService_CreateDeposit(t *testing.T) {
 		walletService.On("GetWalletByXid", mock.Anything, params.CustomerXid).Return(&wallet.Wallet{}, nil)
 		walletService.On("ValidateWallet", mock.Anything).Return(nil)
 
-		service := transaction.NewTransactionService(repository, walletService)
+		service := transaction.NewTransactionService(repository, walletService, &manager.MockStorageManager{})
 
 		trx, err := service.CreateDeposit(context.TODO(), params)
 		assert.Equal(t, mockedErr, err)
@@ -163,7 +164,7 @@ func TestTransactionService_CreateDeposit(t *testing.T) {
 		walletService.On("GetWalletByXid", mock.Anything, params.CustomerXid).Return(&wallet.Wallet{}, nil)
 		walletService.On("ValidateWallet", mock.Anything).Return(nil)
 
-		service := transaction.NewTransactionService(repository, walletService)
+		service := transaction.NewTransactionService(repository, walletService, &manager.MockStorageManager{})
 
 		trx, err := service.CreateDeposit(context.TODO(), params)
 		assert.Equal(t, transaction.ErrReferenceNoAlreadyExists, err)
@@ -179,7 +180,7 @@ func TestTransactionService_CreateDeposit(t *testing.T) {
 		walletService.On("GetWalletByXid", mock.Anything, params.CustomerXid).Return(&wallet.Wallet{}, nil)
 		walletService.On("ValidateWallet", mock.Anything).Return(nil)
 
-		service := transaction.NewTransactionService(repository, walletService)
+		service := transaction.NewTransactionService(repository, walletService, &manager.MockStorageManager{})
 
 		trx, err := service.CreateDeposit(context.TODO(), params)
 		assert.Equal(t, mockedErr, err)
@@ -195,7 +196,7 @@ func TestTransactionService_CreateDeposit(t *testing.T) {
 		walletService.On("GetWalletByXid", mock.Anything, params.CustomerXid).Return(&wallet.Wallet{}, nil)
 		walletService.On("ValidateWallet", mock.Anything).Return(nil)
 
-		service := transaction.NewTransactionService(repository, walletService)
+		service := transaction.NewTransactionService(repository, walletService, &manager.MockStorageManager{})
 
 		trx, err := service.CreateDeposit(context.TODO(), params)
 		assert.Equal(t, mockedErr, err)
@@ -213,7 +214,7 @@ func TestTransactionService_CreateDeposit(t *testing.T) {
 		walletService.On("GetWalletByXid", mock.Anything, params.CustomerXid).Return(&wallet.Wallet{}, nil)
 		walletService.On("ValidateWallet", mock.Anything).Return(nil)
 
-		service := transaction.NewTransactionService(repository, walletService)
+		service := transaction.NewTransactionService(repository, walletService, &manager.MockStorageManager{})
 
 		trx, err := service.CreateDeposit(context.TODO(), params)
 		assert.Equal(t, mockedErr, err)
@@ -247,7 +248,7 @@ func TestTransactionService_CreateDeposit(t *testing.T) {
 		walletService.On("GetWalletByXid", mock.Anything, params.CustomerXid).Return(&wallet.Wallet{}, nil)
 		walletService.On("ValidateWallet", mock.Anything).Return(nil)
 
-		service := transaction.NewTransactionService(repository, walletService)
+		service := transaction.NewTransactionService(repository, walletService, &manager.MockStorageManager{})
 
 		trx, err := service.CreateDeposit(context.TODO(), params)
 		assert.Nil(t, err)
@@ -272,7 +273,7 @@ func TestTransactionService_CreateWithdrawal(t *testing.T) {
 	t.Run("should return error if customer xid is empty", func(t *testing.T) {
 		repository := transaction_mock.NewTransactionRepository(t)
 		walletService := wallet_mock.NewWalletIService(t)
-		service := transaction.NewTransactionService(repository, walletService)
+		service := transaction.NewTransactionService(repository, walletService, &manager.MockStorageManager{})
 
 		trx, err := service.CreateWithdrawal(context.TODO(), &transaction.CreateWithdrawalParams{
 			ReferenceId: "ref-no",
@@ -285,7 +286,7 @@ func TestTransactionService_CreateWithdrawal(t *testing.T) {
 	t.Run("should return error if ref no is empty", func(t *testing.T) {
 		repository := transaction_mock.NewTransactionRepository(t)
 		walletService := wallet_mock.NewWalletIService(t)
-		service := transaction.NewTransactionService(repository, walletService)
+		service := transaction.NewTransactionService(repository, walletService, &manager.MockStorageManager{})
 
 		trx, err := service.CreateWithdrawal(context.TODO(), &transaction.CreateWithdrawalParams{
 			CustomerXid: "test-xid",
@@ -300,7 +301,7 @@ func TestTransactionService_CreateWithdrawal(t *testing.T) {
 		walletService := wallet_mock.NewWalletIService(t)
 		walletService.On("GetWalletByXid", mock.Anything, params.CustomerXid).Return(nil, mockedErr)
 
-		service := transaction.NewTransactionService(repository, walletService)
+		service := transaction.NewTransactionService(repository, walletService, &manager.MockStorageManager{})
 
 		trx, err := service.CreateWithdrawal(context.TODO(), params)
 		assert.Equal(t, mockedErr, err)
@@ -313,7 +314,7 @@ func TestTransactionService_CreateWithdrawal(t *testing.T) {
 		walletService.On("GetWalletByXid", mock.Anything, params.CustomerXid).Return(&wallet.Wallet{}, nil)
 		walletService.On("ValidateWallet", mock.Anything).Return(mockedErr)
 
-		service := transaction.NewTransactionService(repository, walletService)
+		service := transaction.NewTransactionService(repository, walletService, &manager.MockStorageManager{})
 
 		trx, err := service.CreateWithdrawal(context.TODO(), params)
 		assert.Equal(t, mockedErr, err)
@@ -328,7 +329,7 @@ func TestTransactionService_CreateWithdrawal(t *testing.T) {
 		}, nil)
 		walletService.On("ValidateWallet", mock.Anything).Return(nil)
 
-		service := transaction.NewTransactionService(repository, walletService)
+		service := transaction.NewTransactionService(repository, walletService, &manager.MockStorageManager{})
 
 		trx, err := service.CreateWithdrawal(context.TODO(), params)
 		assert.Equal(t, wallet.ErrInsufficientBalance, err)
@@ -345,7 +346,7 @@ func TestTransactionService_CreateWithdrawal(t *testing.T) {
 		}, nil)
 		walletService.On("ValidateWallet", mock.Anything).Return(nil)
 
-		service := transaction.NewTransactionService(repository, walletService)
+		service := transaction.NewTransactionService(repository, walletService, &manager.MockStorageManager{})
 
 		trx, err := service.CreateWithdrawal(context.TODO(), params)
 		assert.Equal(t, mockedErr, err)
@@ -362,7 +363,7 @@ func TestTransactionService_CreateWithdrawal(t *testing.T) {
 		}, nil)
 		walletService.On("ValidateWallet", mock.Anything).Return(nil)
 
-		service := transaction.NewTransactionService(repository, walletService)
+		service := transaction.NewTransactionService(repository, walletService, &manager.MockStorageManager{})
 
 		trx, err := service.CreateWithdrawal(context.TODO(), params)
 		assert.Equal(t, transaction.ErrReferenceNoAlreadyExists, err)
@@ -380,7 +381,7 @@ func TestTransactionService_CreateWithdrawal(t *testing.T) {
 		}, nil)
 		walletService.On("ValidateWallet", mock.Anything).Return(nil)
 
-		service := transaction.NewTransactionService(repository, walletService)
+		service := transaction.NewTransactionService(repository, walletService, &manager.MockStorageManager{})
 
 		trx, err := service.CreateWithdrawal(context.TODO(), params)
 		assert.Equal(t, mockedErr, err)
@@ -398,7 +399,7 @@ func TestTransactionService_CreateWithdrawal(t *testing.T) {
 		}, nil)
 		walletService.On("ValidateWallet", mock.Anything).Return(nil)
 
-		service := transaction.NewTransactionService(repository, walletService)
+		service := transaction.NewTransactionService(repository, walletService, &manager.MockStorageManager{})
 
 		trx, err := service.CreateWithdrawal(context.TODO(), params)
 		assert.Equal(t, mockedErr, err)
@@ -418,7 +419,7 @@ func TestTransactionService_CreateWithdrawal(t *testing.T) {
 		}, nil)
 		walletService.On("ValidateWallet", mock.Anything).Return(nil)
 
-		service := transaction.NewTransactionService(repository, walletService)
+		service := transaction.NewTransactionService(repository, walletService, &manager.MockStorageManager{})
 
 		trx, err := service.CreateWithdrawal(context.TODO(), params)
 		assert.Equal(t, mockedErr, err)
@@ -454,7 +455,7 @@ func TestTransactionService_CreateWithdrawal(t *testing.T) {
 		}, nil)
 		walletService.On("ValidateWallet", mock.Anything).Return(nil)
 
-		service := transaction.NewTransactionService(repository, walletService)
+		service := transaction.NewTransactionService(repository, walletService, &manager.MockStorageManager{})
 
 		trx, err := service.CreateWithdrawal(context.TODO(), params)
 		assert.Nil(t, err)

@@ -17,7 +17,7 @@ func buildApp(db *gorm.DB) *app.Application {
 	gormManager := setupGormStorageManager(db)
 	walletService := setupWallet(db)
 	clientService := setupClient(db, walletService, gormManager)
-	transactionService := setupTransaction(db, walletService)
+	transactionService := setupTransaction(db, walletService, gormManager)
 
 	return &app.Application{
 		WalletService:      walletService,
@@ -40,7 +40,7 @@ func setupClient(db *gorm.DB, walletService wallet.WalletIService, storageManage
 	return client.NewClientService(repository, walletService, storageManager)
 }
 
-func setupTransaction(db *gorm.DB, walletService wallet.WalletIService) transaction.TransactionIService {
+func setupTransaction(db *gorm.DB, walletService wallet.WalletIService, storageManager manager.StorageManager) transaction.TransactionIService {
 	repository := transaction_repository.NewTransactionRepository(db)
-	return transaction.NewTransactionService(repository, walletService)
+	return transaction.NewTransactionService(repository, walletService, storageManager)
 }
