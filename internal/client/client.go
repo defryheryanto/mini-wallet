@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 
+	"github.com/defryheryanto/mini-wallet/internal/storage/manager"
 	"github.com/defryheryanto/mini-wallet/internal/wallet"
 )
 
@@ -25,12 +26,17 @@ type ClientIService interface {
 }
 
 type ClientService struct {
-	repository    ClientRepository
-	walletService wallet.WalletIService
+	repository     ClientRepository
+	walletService  wallet.WalletIService
+	storageManager manager.StorageManager
 }
 
-func NewClientService(repository ClientRepository, walletService wallet.WalletIService) ClientIService {
-	return &ClientService{repository, walletService}
+func NewClientService(
+	repository ClientRepository,
+	walletService wallet.WalletIService,
+	storageManager manager.StorageManager,
+) ClientIService {
+	return &ClientService{repository, walletService, storageManager}
 }
 
 func (s *ClientService) Create(ctx context.Context, xid string) (*Client, error) {
@@ -54,17 +60,23 @@ func (s *ClientService) Create(ctx context.Context, xid string) (*Client, error)
 		}
 	}
 
-	// TODO: Wrap this with DB transaction
-	err = s.repository.Insert(ctx, &Client{
-		Xid:   xid,
-		Token: token,
-	})
-	if err != nil {
-		return nil, err
-	}
+	err = s.storageManager.RunInTransaction(ctx, func(ctx context.Context) error {
+		err = s.repository.Insert(ctx, &Client{
+			Xid:   xid,
+			Token: token,
+		})
+		if err != nil {
+			return err
+		}
 
-	err = s.walletService.Create(ctx, &wallet.CreateWalletParams{
-		OwnedBy: xid,
+		err = s.walletService.Create(ctx, &wallet.CreateWalletParams{
+			OwnedBy: xid,
+		})
+		if err != nil {
+			return err
+		}
+
+		return nil
 	})
 	if err != nil {
 		return nil, err

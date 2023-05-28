@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/defryheryanto/mini-wallet/internal/client"
+	gorm_manager "github.com/defryheryanto/mini-wallet/internal/storage/manager/gorm"
 	"gorm.io/gorm"
 )
 
@@ -18,7 +19,8 @@ func NewClientRepository(db *gorm.DB) *ClientRepository {
 func (r *ClientRepository) Insert(ctx context.Context, data *client.Client) error {
 	payload := Client{}.FromServiceModel(data)
 
-	err := r.db.Create(&payload).Error
+	db := r.getGormClient(ctx)
+	err := db.Create(&payload).Error
 	if err != nil {
 		return err
 	}
@@ -52,4 +54,13 @@ func (r *ClientRepository) FindByToken(ctx context.Context, token string) (*clie
 	}
 
 	return result.ToServiceModel(), nil
+}
+
+func (r *ClientRepository) getGormClient(ctx context.Context) *gorm.DB {
+	db, err := gorm_manager.ExtractClientFromContext(ctx)
+	if err != nil {
+		return r.db
+	}
+
+	return db
 }

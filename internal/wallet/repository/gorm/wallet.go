@@ -3,6 +3,7 @@ package gorm
 import (
 	"context"
 
+	gorm_manager "github.com/defryheryanto/mini-wallet/internal/storage/manager/gorm"
 	"github.com/defryheryanto/mini-wallet/internal/wallet"
 	"gorm.io/gorm"
 )
@@ -18,7 +19,8 @@ func NewWalletRepository(db *gorm.DB) *WalletRepository {
 func (r *WalletRepository) Insert(ctx context.Context, data *wallet.Wallet) error {
 	payload := Wallet{}.FromServiceModel(data)
 
-	err := r.db.Create(&payload).Error
+	db := r.getGormClient(ctx)
+	err := db.Create(&payload).Error
 	if err != nil {
 		return err
 	}
@@ -57,7 +59,8 @@ func (r *WalletRepository) FindByCustomerXid(ctx context.Context, xid string) (*
 func (r *WalletRepository) Update(ctx context.Context, data *wallet.Wallet) error {
 	result := Wallet{}.FromServiceModel(data)
 
-	err := r.db.Where("id = ?", data.Id).Select("*").Updates(&result).Error
+	db := r.getGormClient(ctx)
+	err := db.Where("id = ?", data.Id).Select("*").Updates(&result).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil
@@ -66,4 +69,13 @@ func (r *WalletRepository) Update(ctx context.Context, data *wallet.Wallet) erro
 	}
 
 	return nil
+}
+
+func (r *WalletRepository) getGormClient(ctx context.Context) *gorm.DB {
+	db, err := gorm_manager.ExtractClientFromContext(ctx)
+	if err != nil {
+		return r.db
+	}
+
+	return db
 }

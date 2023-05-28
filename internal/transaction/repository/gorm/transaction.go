@@ -3,6 +3,7 @@ package gorm
 import (
 	"context"
 
+	gorm_manager "github.com/defryheryanto/mini-wallet/internal/storage/manager/gorm"
 	"github.com/defryheryanto/mini-wallet/internal/transaction"
 	"gorm.io/gorm"
 )
@@ -57,7 +58,8 @@ func (r *TransactionRepository) FindById(ctx context.Context, id string) (*trans
 func (r *TransactionRepository) Insert(ctx context.Context, data *transaction.Transaction) error {
 	trx := Transaction{}.FromServiceModel(data)
 
-	err := r.db.Create(&trx).Error
+	db := r.getGormClient(ctx)
+	err := db.Create(&trx).Error
 	if err != nil {
 		return err
 	}
@@ -68,10 +70,20 @@ func (r *TransactionRepository) Insert(ctx context.Context, data *transaction.Tr
 func (r *TransactionRepository) Update(ctx context.Context, data *transaction.Transaction) error {
 	trx := Transaction{}.FromServiceModel(data)
 
-	err := r.db.Where("id = ?", trx.Id).Select("*").Updates(&trx).Error
+	db := r.getGormClient(ctx)
+	err := db.Where("id = ?", trx.Id).Select("*").Updates(&trx).Error
 	if err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func (r *TransactionRepository) getGormClient(ctx context.Context) *gorm.DB {
+	db, err := gorm_manager.ExtractClientFromContext(ctx)
+	if err != nil {
+		return r.db
+	}
+
+	return db
 }

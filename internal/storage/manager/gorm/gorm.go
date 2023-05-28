@@ -2,6 +2,7 @@ package gorm
 
 import (
 	"context"
+	"log"
 
 	"gorm.io/gorm"
 )
@@ -25,7 +26,10 @@ func (m *GormStorageManager) RunInTransaction(ctx context.Context, fn func(ctx c
 
 	err := fn(ctx)
 	if err != nil {
-		db.Rollback()
+		rollbackErr := db.Rollback().Error
+		if rollbackErr != nil {
+			log.Printf("error rollback %v\n", err)
+		}
 		return err
 	}
 
