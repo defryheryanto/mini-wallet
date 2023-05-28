@@ -30,6 +30,15 @@ type DepositResponse struct {
 	ReferenceId string    `json:"reference_id"`
 }
 
+type WithdrawalResponse struct {
+	Id          string    `json:"id"`
+	WithdrawnBy string    `json:"withdrawn_by"`
+	Status      string    `json:"status"`
+	WithdrawnAt time.Time `json:"withdrawn_at"`
+	Amount      float64   `json:"amount"`
+	ReferenceId string    `json:"reference_id"`
+}
+
 type CreateDepositRequest struct {
 	Amount      float64 `json:"amount"`
 	ReferenceId string  `json:"reference_id"`
@@ -55,7 +64,7 @@ func HandleGetWalletTransactions(service transaction.TransactionIService) http.H
 				return
 			}
 			if err == wallet.ErrWalletDisabled {
-				response.Failed(w, http.StatusBadRequest, "Wallet disabled")
+				response.Failed(w, http.StatusNotFound, "Wallet disabled")
 				return
 			}
 			response.Error(w, err)
@@ -130,7 +139,7 @@ func HandleCreateDeposit(service transaction.TransactionIService) http.HandlerFu
 				return
 			}
 			if err == wallet.ErrWalletDisabled {
-				response.Failed(w, http.StatusBadRequest, "Wallet disabled")
+				response.Failed(w, http.StatusNotFound, "Wallet disabled")
 				return
 			}
 			if err == wallet.ErrWalletNotFound {
@@ -201,7 +210,7 @@ func HandleCreateWithdrawal(service transaction.TransactionIService) http.Handle
 				return
 			}
 			if err == wallet.ErrWalletDisabled {
-				response.Failed(w, http.StatusBadRequest, "Wallet disabled")
+				response.Failed(w, http.StatusNotFound, "Wallet disabled")
 				return
 			}
 			if err == wallet.ErrWalletNotFound {
@@ -216,11 +225,11 @@ func HandleCreateWithdrawal(service transaction.TransactionIService) http.Handle
 			return
 		}
 
-		response.Success(w, http.StatusCreated, &DepositResponse{
+		response.Success(w, http.StatusCreated, &WithdrawalResponse{
 			Id:          trx.Id,
-			DepositedBy: currentClient.Xid,
+			WithdrawnBy: currentClient.Xid,
 			Status:      trx.Status,
-			DepositedAt: trx.TransactedAt,
+			WithdrawnAt: trx.TransactedAt,
 			Amount:      trx.Amount,
 			ReferenceId: trx.ReferenceId,
 		})

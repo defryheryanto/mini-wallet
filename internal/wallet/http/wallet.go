@@ -66,14 +66,14 @@ func HandleViewWallet(service wallet.WalletIService) http.HandlerFunc {
 				return
 			}
 			if err == wallet.ErrWalletDisabled {
-				response.Failed(w, http.StatusBadRequest, "Wallet disabled")
+				response.Failed(w, http.StatusNotFound, "Wallet disabled")
 				return
 			}
 			response.Error(w, err)
 			return
 		}
 
-		response.Success(w, http.StatusCreated, map[string]interface{}{
+		response.Success(w, http.StatusOK, map[string]interface{}{
 			"wallet": &EnabledWalletResponse{
 				Id:        targetWallet.Id,
 				OwnedBy:   targetWallet.OwnedBy,
