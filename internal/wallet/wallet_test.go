@@ -62,7 +62,7 @@ func TestWalletService_Create(t *testing.T) {
 	})
 }
 
-func TestWalletService_EnableWallet(t *testing.T) {
+func TestWalletService_UpdateStatus(t *testing.T) {
 	customerXid := "test"
 	mockedErr := fmt.Errorf("mocked")
 	t.Run("should return error if failed to find wallet by customer xid", func(t *testing.T) {
@@ -70,7 +70,7 @@ func TestWalletService_EnableWallet(t *testing.T) {
 		repository.On("FindByCustomerXid", mock.Anything, customerXid).Return(nil, mockedErr)
 
 		service := wallet.NewWalletService(repository)
-		result, err := service.EnableWallet(context.TODO(), customerXid)
+		result, err := service.UpdateStatus(context.TODO(), customerXid, true)
 		assert.Equal(t, mockedErr, err)
 		assert.Nil(t, result)
 	})
@@ -79,20 +79,30 @@ func TestWalletService_EnableWallet(t *testing.T) {
 		repository.On("FindByCustomerXid", mock.Anything, customerXid).Return(nil, nil)
 
 		service := wallet.NewWalletService(repository)
-		result, err := service.EnableWallet(context.TODO(), customerXid)
+		result, err := service.UpdateStatus(context.TODO(), customerXid, true)
 		assert.Equal(t, wallet.ErrWalletNotFound, err)
 		assert.Nil(t, result)
 	})
-	t.Run("should return error if wallet already enabled", func(t *testing.T) {
-		now := time.Now()
+	t.Run("should return error if isEnabled true and wallet already enabled", func(t *testing.T) {
 		repository := mocks.NewWalletRepository(t)
 		repository.On("FindByCustomerXid", mock.Anything, customerXid).Return(&wallet.Wallet{
-			EnabledAt: &now,
+			Status: wallet.STATUS_ENABLED,
 		}, nil)
 
 		service := wallet.NewWalletService(repository)
-		result, err := service.EnableWallet(context.TODO(), customerXid)
+		result, err := service.UpdateStatus(context.TODO(), customerXid, true)
 		assert.Equal(t, wallet.ErrWalletAlreadyEnabled, err)
+		assert.Nil(t, result)
+	})
+	t.Run("should return error if isEnabled false and wallet already disabled", func(t *testing.T) {
+		repository := mocks.NewWalletRepository(t)
+		repository.On("FindByCustomerXid", mock.Anything, customerXid).Return(&wallet.Wallet{
+			Status: wallet.STATUS_DISABLED,
+		}, nil)
+
+		service := wallet.NewWalletService(repository)
+		result, err := service.UpdateStatus(context.TODO(), customerXid, false)
+		assert.Equal(t, wallet.ErrWalletAlreadyDisabled, err)
 		assert.Nil(t, result)
 	})
 	t.Run("should return error if update wallet failed", func(t *testing.T) {
@@ -101,14 +111,15 @@ func TestWalletService_EnableWallet(t *testing.T) {
 		repository.On("Update", mock.Anything, mock.Anything).Return(mockedErr)
 
 		service := wallet.NewWalletService(repository)
-		result, err := service.EnableWallet(context.TODO(), customerXid)
+		result, err := service.UpdateStatus(context.TODO(), customerXid, true)
 		assert.Equal(t, mockedErr, err)
 		assert.Nil(t, result)
 	})
-	t.Run("should return wallet data if operation success", func(t *testing.T) {
+	t.Run("should return wallet data if enable wallet success", func(t *testing.T) {
 		now := time.Now()
 		repository := mocks.NewWalletRepository(t)
 		repository.On("FindByCustomerXid", mock.Anything, customerXid).Return(&wallet.Wallet{
+			Status:     wallet.STATUS_DISABLED,
 			DisabledAt: &now,
 			EnabledAt:  nil,
 		}, nil)
@@ -121,7 +132,28 @@ func TestWalletService_EnableWallet(t *testing.T) {
 		}).Return(nil)
 
 		service := wallet.NewWalletService(repository)
-		result, err := service.EnableWallet(context.TODO(), customerXid)
+		result, err := service.UpdateStatus(context.TODO(), customerXid, true)
+		assert.NotNil(t, result)
+		assert.Nil(t, err)
+	})
+	t.Run("should return wallet data if disable wallet success", func(t *testing.T) {
+		now := time.Now()
+		repository := mocks.NewWalletRepository(t)
+		repository.On("FindByCustomerXid", mock.Anything, customerXid).Return(&wallet.Wallet{
+			Status:     wallet.STATUS_ENABLED,
+			DisabledAt: nil,
+			EnabledAt:  &now,
+		}, nil)
+		repository.On("Update", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
+			updateParams, ok := args.Get(1).(*wallet.Wallet)
+			assert.True(t, ok, "second argument of update should be *Wallet")
+			assert.Nil(t, updateParams.EnabledAt)
+			assert.NotNil(t, updateParams.DisabledAt)
+			assert.Equal(t, wallet.STATUS_DISABLED, updateParams.Status)
+		}).Return(nil)
+
+		service := wallet.NewWalletService(repository)
+		result, err := service.UpdateStatus(context.TODO(), customerXid, false)
 		assert.NotNil(t, result)
 		assert.Nil(t, err)
 	})

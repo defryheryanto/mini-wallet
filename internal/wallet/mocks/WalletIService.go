@@ -56,8 +56,8 @@ func (_m *WalletIService) DeductBalance(ctx context.Context, walletId string, am
 	return r0
 }
 
-// EnableWallet provides a mock function with given fields: ctx, customerXid
-func (_m *WalletIService) EnableWallet(ctx context.Context, customerXid string) (*wallet.Wallet, error) {
+// GetWalletByXid provides a mock function with given fields: ctx, customerXid
+func (_m *WalletIService) GetWalletByXid(ctx context.Context, customerXid string) (*wallet.Wallet, error) {
 	ret := _m.Called(ctx, customerXid)
 
 	var r0 *wallet.Wallet
@@ -82,25 +82,25 @@ func (_m *WalletIService) EnableWallet(ctx context.Context, customerXid string) 
 	return r0, r1
 }
 
-// GetWalletByXid provides a mock function with given fields: ctx, customerXid
-func (_m *WalletIService) GetWalletByXid(ctx context.Context, customerXid string) (*wallet.Wallet, error) {
-	ret := _m.Called(ctx, customerXid)
+// UpdateStatus provides a mock function with given fields: ctx, customerXid, isEnabled
+func (_m *WalletIService) UpdateStatus(ctx context.Context, customerXid string, isEnabled bool) (*wallet.Wallet, error) {
+	ret := _m.Called(ctx, customerXid, isEnabled)
 
 	var r0 *wallet.Wallet
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) (*wallet.Wallet, error)); ok {
-		return rf(ctx, customerXid)
+	if rf, ok := ret.Get(0).(func(context.Context, string, bool) (*wallet.Wallet, error)); ok {
+		return rf(ctx, customerXid, isEnabled)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string) *wallet.Wallet); ok {
-		r0 = rf(ctx, customerXid)
+	if rf, ok := ret.Get(0).(func(context.Context, string, bool) *wallet.Wallet); ok {
+		r0 = rf(ctx, customerXid, isEnabled)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*wallet.Wallet)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, customerXid)
+	if rf, ok := ret.Get(1).(func(context.Context, string, bool) error); ok {
+		r1 = rf(ctx, customerXid, isEnabled)
 	} else {
 		r1 = ret.Error(1)
 	}

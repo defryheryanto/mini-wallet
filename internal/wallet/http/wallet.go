@@ -25,7 +25,7 @@ func HandleEnableWallet(service wallet.WalletIService) http.HandlerFunc {
 			return
 		}
 
-		targetWallet, err := service.EnableWallet(r.Context(), currentClient.Xid)
+		targetWallet, err := service.UpdateStatus(r.Context(), currentClient.Xid, true)
 		if err != nil {
 			if err == wallet.ErrWalletNotFound {
 				response.Failed(w, http.StatusNotFound, err.Error())

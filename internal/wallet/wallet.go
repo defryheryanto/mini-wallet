@@ -25,7 +25,7 @@ type WalletRepository interface {
 
 type WalletIService interface {
 	Create(ctx context.Context, params *CreateWalletParams) error
-	EnableWallet(ctx context.Context, customerXid string) (*Wallet, error)
+	UpdateStatus(ctx context.Context, customerXid string, isEnabled bool) (*Wallet, error)
 	GetWalletByXid(ctx context.Context, customerXid string) (*Wallet, error)
 	AddBalance(ctx context.Context, walletId string, amount float64) error
 	ValidateWallet(target *Wallet) error
@@ -77,7 +77,7 @@ func (s *WalletService) Create(ctx context.Context, params *CreateWalletParams) 
 	return nil
 }
 
-func (s *WalletService) EnableWallet(ctx context.Context, customerXid string) (*Wallet, error) {
+func (s *WalletService) UpdateStatus(ctx context.Context, customerXid string, isEnabled bool) (*Wallet, error) {
 	currentWallet, err := s.repository.FindByCustomerXid(ctx, customerXid)
 	if err != nil {
 		return nil, err
@@ -85,14 +85,23 @@ func (s *WalletService) EnableWallet(ctx context.Context, customerXid string) (*
 	if currentWallet == nil {
 		return nil, ErrWalletNotFound
 	}
-	if currentWallet.EnabledAt != nil {
-		return nil, ErrWalletAlreadyEnabled
-	}
 
 	now := time.Now()
-	currentWallet.DisabledAt = nil
-	currentWallet.EnabledAt = &now
-	currentWallet.Status = STATUS_ENABLED
+	if isEnabled {
+		if currentWallet.Status == STATUS_ENABLED {
+			return nil, ErrWalletAlreadyEnabled
+		}
+		currentWallet.DisabledAt = nil
+		currentWallet.EnabledAt = &now
+		currentWallet.Status = STATUS_ENABLED
+	} else {
+		if currentWallet.Status == STATUS_DISABLED {
+			return nil, ErrWalletAlreadyDisabled
+		}
+		currentWallet.DisabledAt = &now
+		currentWallet.EnabledAt = nil
+		currentWallet.Status = STATUS_DISABLED
+	}
 
 	err = s.repository.Update(ctx, currentWallet)
 	if err != nil {
