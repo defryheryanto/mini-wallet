@@ -19,8 +19,9 @@ func HandleRoutes(application *app.Application) http.Handler {
 	root.Group(func(r chi.Router) {
 		r.Use(middleware.AuthenticateClient(application.ClientService))
 
-		r.Post("/api/v1/wallet", wallet_http.HandleEnableWallet(application.WalletService))
 		r.Get("/api/v1/wallet", wallet_http.HandleViewWallet(application.WalletService))
+		r.Post("/api/v1/wallet", wallet_http.HandleEnableWallet(application.WalletService))
+		r.Patch("/api/v1/wallet", wallet_http.HandleUpdateWalletStatus(application.WalletService))
 
 		r.Get("/api/v1/wallet/transactions", transaction_http.HandleGetWalletTransactions(application.TransactionService))
 		r.Post("/api/v1/wallet/deposits", transaction_http.HandleCreateDeposit(application.TransactionService))
