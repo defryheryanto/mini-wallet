@@ -143,7 +143,7 @@ func TestTransactionService_CreateDeposit(t *testing.T) {
 
 	t.Run("should return error if failed to get transaction by ref no", func(t *testing.T) {
 		repository := transaction_mock.NewTransactionRepository(t)
-		repository.On("FindByReferenceId", mock.Anything, params.ReferenceId).Return(nil, mockedErr)
+		repository.On("FindByReferenceId", mock.Anything, params.ReferenceId, transaction.TYPE_DEPOSIT).Return(nil, mockedErr)
 
 		walletService := wallet_mock.NewWalletIService(t)
 		walletService.On("GetWalletByXid", mock.Anything, params.CustomerXid).Return(&wallet.Wallet{}, nil)
@@ -158,7 +158,7 @@ func TestTransactionService_CreateDeposit(t *testing.T) {
 
 	t.Run("should return error if ref no already used", func(t *testing.T) {
 		repository := transaction_mock.NewTransactionRepository(t)
-		repository.On("FindByReferenceId", mock.Anything, params.ReferenceId).Return(&transaction.Transaction{}, nil)
+		repository.On("FindByReferenceId", mock.Anything, params.ReferenceId, transaction.TYPE_DEPOSIT).Return(&transaction.Transaction{}, nil)
 
 		walletService := wallet_mock.NewWalletIService(t)
 		walletService.On("GetWalletByXid", mock.Anything, params.CustomerXid).Return(&wallet.Wallet{}, nil)
@@ -173,7 +173,7 @@ func TestTransactionService_CreateDeposit(t *testing.T) {
 
 	t.Run("should return error if get transaction by id failed", func(t *testing.T) {
 		repository := transaction_mock.NewTransactionRepository(t)
-		repository.On("FindByReferenceId", mock.Anything, params.ReferenceId).Return(nil, nil)
+		repository.On("FindByReferenceId", mock.Anything, params.ReferenceId, transaction.TYPE_DEPOSIT).Return(nil, nil)
 		repository.On("FindById", mock.Anything, mock.Anything).Return(nil, mockedErr)
 
 		walletService := wallet_mock.NewWalletIService(t)
@@ -188,7 +188,7 @@ func TestTransactionService_CreateDeposit(t *testing.T) {
 	})
 	t.Run("should return error if insert transaction failed", func(t *testing.T) {
 		repository := transaction_mock.NewTransactionRepository(t)
-		repository.On("FindByReferenceId", mock.Anything, params.ReferenceId).Return(nil, nil)
+		repository.On("FindByReferenceId", mock.Anything, params.ReferenceId, transaction.TYPE_DEPOSIT).Return(nil, nil)
 		repository.On("FindById", mock.Anything, mock.Anything).Return(nil, nil)
 		repository.On("Insert", mock.Anything, mock.Anything).Return(mockedErr)
 
@@ -205,10 +205,10 @@ func TestTransactionService_CreateDeposit(t *testing.T) {
 
 	t.Run("should return error if failed to get created transaction", func(t *testing.T) {
 		repository := transaction_mock.NewTransactionRepository(t)
-		repository.On("FindByReferenceId", mock.Anything, params.ReferenceId).Return(nil, nil).Once()
+		repository.On("FindByReferenceId", mock.Anything, params.ReferenceId, transaction.TYPE_DEPOSIT).Return(nil, nil).Once()
 		repository.On("FindById", mock.Anything, mock.Anything).Return(nil, nil)
 		repository.On("Insert", mock.Anything, mock.Anything).Return(nil)
-		repository.On("FindByReferenceId", mock.Anything, params.ReferenceId).Return(nil, mockedErr).Once()
+		repository.On("FindByReferenceId", mock.Anything, params.ReferenceId, transaction.TYPE_DEPOSIT).Return(nil, mockedErr).Once()
 
 		walletService := wallet_mock.NewWalletIService(t)
 		walletService.On("GetWalletByXid", mock.Anything, params.CustomerXid).Return(&wallet.Wallet{}, nil)
@@ -232,7 +232,7 @@ func TestTransactionService_CreateDeposit(t *testing.T) {
 			WalletId:     "test-wallet-id",
 		}
 		repository := transaction_mock.NewTransactionRepository(t)
-		repository.On("FindByReferenceId", mock.Anything, params.ReferenceId).Return(nil, nil).Once()
+		repository.On("FindByReferenceId", mock.Anything, params.ReferenceId, transaction.TYPE_DEPOSIT).Return(nil, nil).Once()
 		repository.On("FindById", mock.Anything, mock.Anything).Return(nil, nil)
 		repository.On("Insert", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
 			insertParams, ok := args.Get(1).(*transaction.Transaction)
@@ -242,7 +242,7 @@ func TestTransactionService_CreateDeposit(t *testing.T) {
 			assert.Equal(t, transaction.STATUS_PENDING, insertParams.Status)
 			assert.Equal(t, transaction.TYPE_DEPOSIT, insertParams.Type)
 		}).Return(nil)
-		repository.On("FindByReferenceId", mock.Anything, params.ReferenceId).Return(createdTransaction, nil).Once()
+		repository.On("FindByReferenceId", mock.Anything, params.ReferenceId, transaction.TYPE_DEPOSIT).Return(createdTransaction, nil).Once()
 
 		walletService := wallet_mock.NewWalletIService(t)
 		walletService.On("GetWalletByXid", mock.Anything, params.CustomerXid).Return(&wallet.Wallet{}, nil)
@@ -338,7 +338,7 @@ func TestTransactionService_CreateWithdrawal(t *testing.T) {
 
 	t.Run("should return error if failed to get transaction by ref no", func(t *testing.T) {
 		repository := transaction_mock.NewTransactionRepository(t)
-		repository.On("FindByReferenceId", mock.Anything, params.ReferenceId).Return(nil, mockedErr)
+		repository.On("FindByReferenceId", mock.Anything, params.ReferenceId, transaction.TYPE_WITHDRAWAL).Return(nil, mockedErr)
 
 		walletService := wallet_mock.NewWalletIService(t)
 		walletService.On("GetWalletByXid", mock.Anything, params.CustomerXid).Return(&wallet.Wallet{
@@ -355,7 +355,7 @@ func TestTransactionService_CreateWithdrawal(t *testing.T) {
 
 	t.Run("should return error if ref no already used", func(t *testing.T) {
 		repository := transaction_mock.NewTransactionRepository(t)
-		repository.On("FindByReferenceId", mock.Anything, params.ReferenceId).Return(&transaction.Transaction{}, nil)
+		repository.On("FindByReferenceId", mock.Anything, params.ReferenceId, transaction.TYPE_WITHDRAWAL).Return(&transaction.Transaction{}, nil)
 
 		walletService := wallet_mock.NewWalletIService(t)
 		walletService.On("GetWalletByXid", mock.Anything, params.CustomerXid).Return(&wallet.Wallet{
@@ -372,7 +372,7 @@ func TestTransactionService_CreateWithdrawal(t *testing.T) {
 
 	t.Run("should return error if get transaction by id failed", func(t *testing.T) {
 		repository := transaction_mock.NewTransactionRepository(t)
-		repository.On("FindByReferenceId", mock.Anything, params.ReferenceId).Return(nil, nil)
+		repository.On("FindByReferenceId", mock.Anything, params.ReferenceId, transaction.TYPE_WITHDRAWAL).Return(nil, nil)
 		repository.On("FindById", mock.Anything, mock.Anything).Return(nil, mockedErr)
 
 		walletService := wallet_mock.NewWalletIService(t)
@@ -389,7 +389,7 @@ func TestTransactionService_CreateWithdrawal(t *testing.T) {
 	})
 	t.Run("should return error if insert transaction failed", func(t *testing.T) {
 		repository := transaction_mock.NewTransactionRepository(t)
-		repository.On("FindByReferenceId", mock.Anything, params.ReferenceId).Return(nil, nil)
+		repository.On("FindByReferenceId", mock.Anything, params.ReferenceId, transaction.TYPE_WITHDRAWAL).Return(nil, nil)
 		repository.On("FindById", mock.Anything, mock.Anything).Return(nil, nil)
 		repository.On("Insert", mock.Anything, mock.Anything).Return(mockedErr)
 
@@ -408,10 +408,10 @@ func TestTransactionService_CreateWithdrawal(t *testing.T) {
 
 	t.Run("should return error if failed to get created transaction", func(t *testing.T) {
 		repository := transaction_mock.NewTransactionRepository(t)
-		repository.On("FindByReferenceId", mock.Anything, params.ReferenceId).Return(nil, nil).Once()
+		repository.On("FindByReferenceId", mock.Anything, params.ReferenceId, transaction.TYPE_WITHDRAWAL).Return(nil, nil).Once()
 		repository.On("FindById", mock.Anything, mock.Anything).Return(nil, nil)
 		repository.On("Insert", mock.Anything, mock.Anything).Return(nil)
-		repository.On("FindByReferenceId", mock.Anything, params.ReferenceId).Return(nil, mockedErr).Once()
+		repository.On("FindByReferenceId", mock.Anything, params.ReferenceId, transaction.TYPE_WITHDRAWAL).Return(nil, mockedErr).Once()
 
 		walletService := wallet_mock.NewWalletIService(t)
 		walletService.On("GetWalletByXid", mock.Anything, params.CustomerXid).Return(&wallet.Wallet{
@@ -437,7 +437,7 @@ func TestTransactionService_CreateWithdrawal(t *testing.T) {
 			WalletId:     "test-wallet-id",
 		}
 		repository := transaction_mock.NewTransactionRepository(t)
-		repository.On("FindByReferenceId", mock.Anything, params.ReferenceId).Return(nil, nil).Once()
+		repository.On("FindByReferenceId", mock.Anything, params.ReferenceId, transaction.TYPE_WITHDRAWAL).Return(nil, nil).Once()
 		repository.On("FindById", mock.Anything, mock.Anything).Return(nil, nil)
 		repository.On("Insert", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
 			insertParams, ok := args.Get(1).(*transaction.Transaction)
@@ -447,7 +447,7 @@ func TestTransactionService_CreateWithdrawal(t *testing.T) {
 			assert.Equal(t, transaction.STATUS_PENDING, insertParams.Status)
 			assert.Equal(t, transaction.TYPE_WITHDRAWAL, insertParams.Type)
 		}).Return(nil)
-		repository.On("FindByReferenceId", mock.Anything, params.ReferenceId).Return(createdTransaction, nil).Once()
+		repository.On("FindByReferenceId", mock.Anything, params.ReferenceId, transaction.TYPE_WITHDRAWAL).Return(createdTransaction, nil).Once()
 
 		walletService := wallet_mock.NewWalletIService(t)
 		walletService.On("GetWalletByXid", mock.Anything, params.CustomerXid).Return(&wallet.Wallet{
