@@ -13,7 +13,7 @@ func AuthenticateClient(clientService client.ClientIService) func(next http.Hand
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			authorization := strings.Split(r.Header.Get("Authorization"), "Token ")
 			if len(authorization) < 2 {
-				response.Failed(w, http.StatusUnauthorized, "authorization token invalid")
+				response.Failed(w, ErrInvalidToken)
 				return
 			}
 
@@ -21,11 +21,11 @@ func AuthenticateClient(clientService client.ClientIService) func(next http.Hand
 
 			currentClient, err := clientService.GetByToken(r.Context(), token)
 			if err != nil {
-				response.Error(w, err)
+				response.Failed(w, err)
 				return
 			}
 			if currentClient == nil {
-				response.Failed(w, http.StatusUnauthorized, "authorization token invalid")
+				response.Failed(w, ErrInvalidToken)
 				return
 			}
 

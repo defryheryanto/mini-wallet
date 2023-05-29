@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/defryheryanto/mini-wallet/internal/client"
+	"github.com/defryheryanto/mini-wallet/internal/errors"
 	"github.com/defryheryanto/mini-wallet/internal/httpserver/request"
 	"github.com/defryheryanto/mini-wallet/internal/httpserver/response"
 )
@@ -29,25 +30,25 @@ func HandleCreateClient(service client.ClientIService) http.HandlerFunc {
 		err := request.DecodeBody(r, &requestBody)
 		if err != nil {
 			if err == io.EOF {
-				response.Failed(w, http.StatusBadRequest, errEmptyCustomerXidData)
+				response.Failed(w, errors.NewValidationError(errEmptyCustomerXidData))
 				return
 			}
-			response.Error(w, err)
+			response.Failed(w, err)
 			return
 		}
 
 		if requestBody.CustomerXid == "" {
-			response.Failed(w, http.StatusBadRequest, errEmptyCustomerXidData)
+			response.Failed(w, errors.NewValidationError(errEmptyCustomerXidData))
 			return
 		}
 
 		createdClient, err := service.Create(r.Context(), requestBody.CustomerXid)
 		if err != nil {
 			if err == client.ErrXidAlreadyTaken {
-				response.Failed(w, http.StatusBadRequest, err.Error())
+				response.Failed(w, err)
 				return
 			}
-			response.Error(w, err)
+			response.Failed(w, err)
 			return
 		}
 

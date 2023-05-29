@@ -6,10 +6,10 @@ import (
 	"time"
 
 	"github.com/defryheryanto/mini-wallet/internal/client"
+	"github.com/defryheryanto/mini-wallet/internal/errors"
 	"github.com/defryheryanto/mini-wallet/internal/httpserver/request"
 	"github.com/defryheryanto/mini-wallet/internal/httpserver/response"
 	"github.com/defryheryanto/mini-wallet/internal/transaction"
-	"github.com/defryheryanto/mini-wallet/internal/wallet"
 )
 
 type TransactionResponse struct {
@@ -53,21 +53,13 @@ func HandleGetWalletTransactions(service transaction.TransactionIService) http.H
 	return func(w http.ResponseWriter, r *http.Request) {
 		currentClient, err := client.FromContext(r.Context())
 		if err != nil {
-			response.Failed(w, http.StatusUnauthorized, err.Error())
+			response.Failed(w, err)
 			return
 		}
 
 		transactions, err := service.GetTransactionsByCustomerXid(r.Context(), currentClient.Xid)
 		if err != nil {
-			if err == wallet.ErrWalletNotFound {
-				response.Failed(w, http.StatusNotFound, err.Error())
-				return
-			}
-			if err == wallet.ErrWalletDisabled {
-				response.Failed(w, http.StatusNotFound, "Wallet disabled")
-				return
-			}
-			response.Error(w, err)
+			response.Failed(w, err)
 			return
 		}
 
@@ -107,24 +99,24 @@ func HandleCreateDeposit(service transaction.TransactionIService) http.HandlerFu
 		err := request.DecodeBody(r, &requestBody)
 		if err != nil {
 			if err == io.EOF {
-				response.Failed(w, http.StatusBadRequest, map[string]interface{}{
+				response.Failed(w, errors.NewValidationError(map[string]interface{}{
 					"reference_id": errEmptyReferenceIdMsg["reference_id"],
 					"amount":       errEmptyAmountMsg["amount"],
-				})
+				}))
 				return
 			}
-			response.Error(w, err)
+			response.Failed(w, err)
 			return
 		}
 
 		if requestBody.ReferenceId == "" {
-			response.Failed(w, http.StatusBadRequest, errEmptyReferenceIdMsg)
+			response.Failed(w, errors.NewValidationError(errEmptyReferenceIdMsg))
 			return
 		}
 
 		currentClient, err := client.FromContext(r.Context())
 		if err != nil {
-			response.Failed(w, http.StatusUnauthorized, err.Error())
+			response.Failed(w, err)
 			return
 		}
 
@@ -134,19 +126,7 @@ func HandleCreateDeposit(service transaction.TransactionIService) http.HandlerFu
 			Amount:      requestBody.Amount,
 		})
 		if err != nil {
-			if err == transaction.ErrReferenceNoAlreadyExists {
-				response.Failed(w, http.StatusBadRequest, err.Error())
-				return
-			}
-			if err == wallet.ErrWalletDisabled {
-				response.Failed(w, http.StatusNotFound, "Wallet disabled")
-				return
-			}
-			if err == wallet.ErrWalletNotFound {
-				response.Failed(w, http.StatusNotFound, err.Error())
-				return
-			}
-			response.Error(w, err)
+			response.Failed(w, err)
 			return
 		}
 
@@ -178,24 +158,24 @@ func HandleCreateWithdrawal(service transaction.TransactionIService) http.Handle
 		err := request.DecodeBody(r, &requestBody)
 		if err != nil {
 			if err == io.EOF {
-				response.Failed(w, http.StatusBadRequest, map[string]interface{}{
+				response.Failed(w, errors.NewValidationError(map[string]interface{}{
 					"reference_id": errEmptyReferenceIdMsg["reference_id"],
 					"amount":       errEmptyAmountMsg["amount"],
-				})
+				}))
 				return
 			}
-			response.Error(w, err)
+			response.Failed(w, err)
 			return
 		}
 
 		if requestBody.ReferenceId == "" {
-			response.Failed(w, http.StatusBadRequest, errEmptyReferenceIdMsg)
+			response.Failed(w, errors.NewValidationError(errEmptyReferenceIdMsg))
 			return
 		}
 
 		currentClient, err := client.FromContext(r.Context())
 		if err != nil {
-			response.Failed(w, http.StatusUnauthorized, err.Error())
+			response.Failed(w, err)
 			return
 		}
 
@@ -205,23 +185,7 @@ func HandleCreateWithdrawal(service transaction.TransactionIService) http.Handle
 			Amount:      requestBody.Amount,
 		})
 		if err != nil {
-			if err == transaction.ErrReferenceNoAlreadyExists {
-				response.Failed(w, http.StatusBadRequest, err.Error())
-				return
-			}
-			if err == wallet.ErrWalletDisabled {
-				response.Failed(w, http.StatusNotFound, "Wallet disabled")
-				return
-			}
-			if err == wallet.ErrWalletNotFound {
-				response.Failed(w, http.StatusNotFound, err.Error())
-				return
-			}
-			if err == wallet.ErrInsufficientBalance {
-				response.Failed(w, http.StatusBadRequest, err.Error())
-				return
-			}
-			response.Error(w, err)
+			response.Failed(w, err)
 			return
 		}
 

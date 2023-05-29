@@ -1,10 +1,12 @@
 package wallet
 
-import "fmt"
+import (
+	"github.com/defryheryanto/mini-wallet/internal/errors"
+)
 
-var ErrOwnedByRequired = fmt.Errorf("owned_by field is required")
-var ErrWalletNotFound = fmt.Errorf("wallet not found")
-var ErrWalletAlreadyEnabled = fmt.Errorf("wallet already enabled")
-var ErrWalletAlreadyDisabled = fmt.Errorf("wallet already disabled")
-var ErrWalletDisabled = fmt.Errorf("wallet is not enabled")
-var ErrInsufficientBalance = fmt.Errorf("balance insufficient")
+var ErrOwnedByRequired = errors.NewValidationError("owned_by field is required")
+var ErrWalletNotFound = errors.NewNotFoundError("wallet not found")
+var ErrWalletAlreadyEnabled = errors.NewValidationError("Already enabled")
+var ErrWalletAlreadyDisabled = errors.NewValidationError("Already disabled")
+var ErrWalletDisabled = errors.NewNotFoundError("Wallet disabled")
+var ErrInsufficientBalance = errors.NewValidationError("balance insufficient")

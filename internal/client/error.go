@@ -1,6 +1,8 @@
 package client
 
-import "fmt"
+import (
+	"github.com/defryheryanto/mini-wallet/internal/errors"
+)
 
-var ErrXidAlreadyTaken = fmt.Errorf("xid already taken")
-var ErrInvalidClient = fmt.Errorf("client invalid")
+var ErrXidAlreadyTaken = errors.NewValidationError("xid already taken")
+var ErrInvalidClient = errors.NewUnauthorizedError("client invalid")

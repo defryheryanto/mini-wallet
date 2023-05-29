@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/defryheryanto/mini-wallet/internal/client"
+	"github.com/defryheryanto/mini-wallet/internal/errors"
 	"github.com/defryheryanto/mini-wallet/internal/httpserver/request"
 	"github.com/defryheryanto/mini-wallet/internal/httpserver/response"
 	"github.com/defryheryanto/mini-wallet/internal/wallet"
@@ -34,21 +35,13 @@ func HandleEnableWallet(service wallet.WalletIService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		currentClient, err := client.FromContext(r.Context())
 		if err != nil {
-			response.Failed(w, http.StatusUnauthorized, err.Error())
+			response.Failed(w, err)
 			return
 		}
 
 		targetWallet, err := service.UpdateStatus(r.Context(), currentClient.Xid, true)
 		if err != nil {
-			if err == wallet.ErrWalletNotFound {
-				response.Failed(w, http.StatusNotFound, err.Error())
-				return
-			}
-			if err == wallet.ErrWalletAlreadyEnabled {
-				response.Failed(w, http.StatusBadRequest, "Already enabled")
-				return
-			}
-			response.Error(w, err)
+			response.Failed(w, err)
 			return
 		}
 
@@ -68,21 +61,13 @@ func HandleViewWallet(service wallet.WalletIService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		currentClient, err := client.FromContext(r.Context())
 		if err != nil {
-			response.Failed(w, http.StatusUnauthorized, err.Error())
+			response.Failed(w, err)
 			return
 		}
 
 		targetWallet, err := service.GetWalletByXid(r.Context(), currentClient.Xid)
 		if err != nil {
-			if err == wallet.ErrWalletNotFound {
-				response.Failed(w, http.StatusNotFound, err.Error())
-				return
-			}
-			if err == wallet.ErrWalletDisabled {
-				response.Failed(w, http.StatusNotFound, "Wallet disabled")
-				return
-			}
-			response.Error(w, err)
+			response.Failed(w, err)
 			return
 		}
 
@@ -105,38 +90,26 @@ func HandleUpdateWalletStatus(service wallet.WalletIService) http.HandlerFunc {
 		err := request.DecodeBody(r, &requestBody)
 		if err != nil {
 			if err == io.EOF {
-				response.Failed(w, http.StatusBadRequest, map[string]interface{}{
+				response.Failed(w, errors.NewValidationError(map[string]interface{}{
 					"is_disabled": []string{
 						"Missing data for required field.",
 					},
-				})
+				}))
 				return
 			}
-			response.Error(w, err)
+			response.Failed(w, err)
 			return
 		}
 
 		currentClient, err := client.FromContext(r.Context())
 		if err != nil {
-			response.Failed(w, http.StatusUnauthorized, err.Error())
+			response.Failed(w, err)
 			return
 		}
 
 		targetWallet, err := service.UpdateStatus(r.Context(), currentClient.Xid, !requestBody.IsDisabled)
 		if err != nil {
-			if err == wallet.ErrWalletNotFound {
-				response.Failed(w, http.StatusNotFound, err.Error())
-				return
-			}
-			if err == wallet.ErrWalletAlreadyEnabled {
-				response.Failed(w, http.StatusBadRequest, "Already enabled")
-				return
-			}
-			if err == wallet.ErrWalletAlreadyDisabled {
-				response.Failed(w, http.StatusBadRequest, "Already disabled")
-				return
-			}
-			response.Error(w, err)
+			response.Failed(w, err)
 			return
 		}
 

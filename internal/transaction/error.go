@@ -1,7 +1,9 @@
 package transaction
 
-import "fmt"
+import (
+	"github.com/defryheryanto/mini-wallet/internal/errors"
+)
 
-var ErrReferenceNoAlreadyExists = fmt.Errorf("reference number already exists")
-var ErrEmptyCustomerXid = fmt.Errorf("customer xid is required")
-var ErrEmptyReferenceId = fmt.Errorf("reference id is required")
+var ErrReferenceNoAlreadyExists = errors.NewValidationError("reference number already exists")
+var ErrEmptyCustomerXid = errors.NewValidationError("customer xid is required")
+var ErrEmptyReferenceId = errors.NewValidationError("reference id is required")
