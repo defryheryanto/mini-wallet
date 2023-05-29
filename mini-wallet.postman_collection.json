@@ -1,0 +1,218 @@
+{
+	"info": {
+		"_postman_id": "637c03f0-2d88-42a1-b792-434eb3cf0ee0",
+		"name": "mini-wallet",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "23209452"
+	},
+	"item": [
+		{
+			"name": "Init",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"customer_xid\": \"ea0212d3-abd6-406f-8c67-868e814a2431\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base-url}}/api/v1/init",
+					"host": [
+						"{{base-url}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"init"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Enable Wallet",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Token {{token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{base-url}}/api/v1/wallet",
+					"host": [
+						"{{base-url}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"wallet"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Disable Wallet",
+			"request": {
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Token {{token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"is_disabled\": true\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base-url}}/api/v1/wallet",
+					"host": [
+						"{{base-url}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"wallet"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Wallet",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Token {{token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{base-url}}/api/v1/wallet",
+					"host": [
+						"{{base-url}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"wallet"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "View Wallet Transactions",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Token {{token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{base-url}}/api/v1/wallet/transactions",
+					"host": [
+						"{{base-url}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"wallet",
+						"transactions"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create Deposit",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Token {{token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"amount\": 100000,\n    \"reference_id\": \"50535246-dcb2-4929-8cc9-004ea06f5213\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base-url}}/api/v1/wallet/deposits",
+					"host": [
+						"{{base-url}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"wallet",
+						"deposits"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create Withdrawal",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Token {{token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"amount\": 50000,\n    \"reference_id\": \"50535246-dcb2-4929-8cc9-004ea06f5212\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base-url}}/api/v1/wallet/withdrawals",
+					"host": [
+						"{{base-url}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"wallet",
+						"withdrawals"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
