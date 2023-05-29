@@ -132,6 +132,8 @@ func (s *WalletService) GetWalletByXid(ctx context.Context, customerXid string) 
 }
 
 func (s *WalletService) AddBalance(ctx context.Context, walletId string, amount float64) error {
+	// TODO: This process is sensitive to racing condition
+	// TODO: Implement redis lock here to avoid it
 	targetWallet, err := s.repository.FindById(ctx, walletId)
 	if err != nil {
 		return err
@@ -162,6 +164,8 @@ func (s *WalletService) ValidateWallet(target *Wallet) error {
 }
 
 func (s *WalletService) DeductBalance(ctx context.Context, walletId string, amount float64) error {
+	// TODO: This process is sensitive to racing condition
+	// TODO: Implement redis lock here to avoid it
 	targetWallet, err := s.repository.FindById(ctx, walletId)
 	if err != nil {
 		return err
